@@ -1,7 +1,6 @@
 using Prezentex.Domain.Common;
 using Prezentex.Domain.ValueObjects;
 using System;
-using System.Collections.Generic;
 
 namespace Prezentex.Domain.Entities;
 
