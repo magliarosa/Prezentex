@@ -1,0 +1,38 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Gifted",
+    "description": "Gifted",
+    "type": "object",
+    "properties": {
+        "Id": {
+            "description": "Gifted ID",
+            "type": "integer"
+        },
+        "Name": {
+            "description": "Name of the gifted ",
+            "type": "string"
+        },
+        "BirthDay": {
+            "description": "Birthday date",
+            "type": "string",
+            "format": "date"
+        },
+        "NameDay": {
+            "description": "Nameday date",
+            "type": "string",
+            "format": "date"
+        },
+        "Gifts": {
+            "description": "List of gifts",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Gift"
+            }
+        }
+    },
+    "required": [
+        "Id",
+        "Name",
+        "Gifts"
+    ]
+}

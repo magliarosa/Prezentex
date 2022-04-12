@@ -8,8 +8,8 @@ public class Gifted : AuditableEntity
 {
     public int Id { get; set; }
 
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public DateTime BirthDay { get; set; }
     public DateTime NameDay { get; set; }
-    public IEnumerable<Gift> Gifts { get; set; }
+    public IEnumerable<Gift>? Gifts { get; set; }
 }

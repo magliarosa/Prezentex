@@ -1,0 +1,32 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Gift",
+    "description": "Gift",
+    "type": "object",
+    "properties": {
+        "Id": {
+            "description": "Gift ID",
+            "type": "integer"
+        },
+        "Name": {
+            "description": "Name of the gift",
+            "type": "string"
+        },
+        "Description": {
+            "description": "Description of the gift",
+            "type": "string"
+        },
+        "Price": {
+            "description": "Price of the gift",
+            "type": "number"
+        },
+        "Url": {
+            "description": "Link to the product",
+            "type": "string"
+        }
+    },
+    "required": [
+        "Id",
+        "Name"
+    ]
+}
