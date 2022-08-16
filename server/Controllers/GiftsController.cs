@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Prezentex.Dtos;
 using Prezentex.Entities;
 using Prezentex.Repositories;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Prezentex.Controllers
 {
@@ -17,6 +18,7 @@ namespace Prezentex.Controllers
             _giftsRepository = giftsRepository;
         }
 
+        [SwaggerOperation(Summary = "Get all gifts")]
         [HttpGet]
         public IEnumerable<GiftDto> GetGifts()
         {
@@ -25,6 +27,7 @@ namespace Prezentex.Controllers
             return giftsDto;
         }
 
+        [SwaggerOperation(Summary = "Get gift by ID")]
         [HttpGet("id")]
         public ActionResult<GiftDto> GetGift(Guid id)
         {
@@ -36,6 +39,7 @@ namespace Prezentex.Controllers
             return gift.AsDto();
         }
 
+        [SwaggerOperation(Summary = "Create gift")]
         [HttpPost]
         public ActionResult<GiftDto> CreateGift(CreateGiftDto giftDto)
         {
@@ -55,6 +59,7 @@ namespace Prezentex.Controllers
             return CreatedAtAction(nameof(CreateGift), newGift.AsDto());
         }
 
+        [SwaggerOperation(Summary = "Update gift")]
         [HttpPut("{id}")]
         public ActionResult<GiftDto> UpdateGift(Guid id, UpdateGiftDto giftDto)
         {
@@ -77,6 +82,7 @@ namespace Prezentex.Controllers
             return Ok(updatedGift.AsDto());
         }
 
+        [SwaggerOperation(Summary = "Delete gift")]
         [HttpDelete("{id}")]
         public ActionResult DeleteGift(Guid id)
         {
