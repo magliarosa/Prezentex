@@ -7,15 +7,7 @@ namespace Prezentex
     {
         public static GiftDto AsDto(this Gift gift)
         {
-            return new GiftDto
-            {
-                CreatedDate = gift.CreatedDate,
-                Description = gift.Description,
-                Id = gift.Id,
-                Name = gift.Name,
-                Price = gift.Price,
-                ProductUrl = gift.ProductUrl
-            };
+            return new GiftDto(gift.Id, gift.CreatedDate, gift.Name, gift.Description, gift.Price, gift.ProductUrl);
         }
     }
 }
