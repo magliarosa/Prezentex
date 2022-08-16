@@ -35,7 +35,7 @@ namespace Prezentex.Repositories
 
         public void UpdateGift(Gift gift)
         {
-            var index = gifts.FindIndex(gift => gift.Id == gift.Id);
+            var index = gifts.FindIndex(giftToChange => giftToChange.Id == gift.Id);
             if (index >= 0)
                 gifts[index] = gift;
         }
