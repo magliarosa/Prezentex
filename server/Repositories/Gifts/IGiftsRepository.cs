@@ -4,11 +4,11 @@ namespace Prezentex.Repositories
 {
     public interface IGiftsRepository
     {
-        Gift GetGift(Guid id);
-        IEnumerable<Gift> GetGifts();
-        void CreateGift(Gift gift);
-        void UpdateGift(Gift gift);
-        void DeleteGift(Guid id);
+        Task<Gift> GetGiftAsync(Guid id);
+        Task<IEnumerable<Gift>> GetGiftsAsync();
+        Task CreateGiftAsync(Gift gift);
+        Task UpdateGiftAsync(Gift gift);
+        Task DeleteGiftAsync(Guid id);
 
     }
 }

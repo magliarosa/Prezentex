@@ -10,34 +10,39 @@ namespace Prezentex.Repositories
             new Gift { Id = Guid.NewGuid(), Name = "Road Bike", CreatedDate = DateTimeOffset.Now, UpdatedDate = DateTimeOffset.Now, Description = "Colnago with Campagnolo Record Groupset", Price = 15000, ProductUrl = "allegro.pl" },
         };
 
-        public void CreateGift(Gift gift)
+        public async Task CreateGiftAsync(Gift gift)
         {
             gifts.Add(gift);
+            await Task.CompletedTask;
         }
 
-        public void DeleteGift(Guid id)
+        public async Task DeleteGiftAsync(Guid id)
         {
             var index = gifts.FindIndex(x => x.Id == id);
             if (index >= 0)
                 gifts.RemoveAt(index);
+            
+            await Task.CompletedTask;
         }
 
-        public Gift GetGift(Guid id)
+        public async Task<Gift> GetGiftAsync(Guid id)
         {
             var gift = gifts.Where(g => g.Id == id).SingleOrDefault();
-            return gift;
+            return await Task.FromResult(gift);
         }
 
-        public IEnumerable<Gift> GetGifts()
+        public async Task<IEnumerable<Gift>> GetGiftsAsync()
         {
-            return gifts;
+            return await Task.FromResult(gifts);
         }
 
-        public void UpdateGift(Gift gift)
+        public async Task UpdateGiftAsync(Gift gift)
         {
             var index = gifts.FindIndex(giftToChange => giftToChange.Id == gift.Id);
             if (index >= 0)
                 gifts[index] = gift;
+
+            await Task.CompletedTask;
         }
     }
 }
