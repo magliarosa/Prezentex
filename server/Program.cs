@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Prezentex.Repositories;
+using Prezentex.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
+var postgresSettings = builder.Configuration.GetSection(nameof(PostgresSettings)).Get<PostgresSettings>();
 
 // Add services to the container.
 builder.Services.AddSingleton<IGiftsRepository, InMemGiftsRepository>();
@@ -18,7 +20,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddHealthChecks();
 builder.Services.AddDbContext<EntitiesDbContext>(
-    options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
+    options => options.UseNpgsql(postgresSettings.ConnectionString)
 );
 
 var app = builder.Build();
