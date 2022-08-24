@@ -1,6 +1,6 @@
 ﻿namespace Prezentex.Entities
 {
-    public record Gifted : Entity
+    public record Recipient : Entity
     {
         public string Name { get; set; }
         public string Note { get; set; }
