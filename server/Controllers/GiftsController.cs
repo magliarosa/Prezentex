@@ -28,7 +28,7 @@ namespace Prezentex.Controllers
         }
 
         [SwaggerOperation(Summary = "Get gift by ID")]
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<GiftDto>> GetGiftAsync(Guid id)
         {
             var gift = await giftsRepository.GetGiftAsync(id);
@@ -45,8 +45,8 @@ namespace Prezentex.Controllers
         {
             var newGift = new Gift()
             {
-                CreatedDate = DateTimeOffset.Now,
-                UpdatedDate = DateTimeOffset.Now,
+                CreatedDate = DateTimeOffset.Now.ToUniversalTime(),
+                UpdatedDate = DateTimeOffset.Now.ToUniversalTime(),
                 Description = giftDto.Description,
                 Id = Guid.NewGuid(),
                 Name = giftDto.Name,
@@ -56,8 +56,7 @@ namespace Prezentex.Controllers
 
             await giftsRepository.CreateGiftAsync(newGift);
 
-            //return CreatedAtAction(nameof(GetGiftAsync), newGift.Id, newGift.AsDto());
-            return CreatedAtAction(nameof(GetGiftAsync), newGift.Id, newGift.AsDto());
+            return CreatedAtAction(nameof(GetGiftAsync), new {Id = newGift.Id}, newGift.AsDto());
         }
 
         [SwaggerOperation(Summary = "Update gift")]
@@ -75,7 +74,7 @@ namespace Prezentex.Controllers
                 Name = giftDto.Name,
                 Price = giftDto.Price,
                 ProductUrl = giftDto.ProductUrl,
-                UpdatedDate = DateTimeOffset.Now
+                UpdatedDate = DateTimeOffset.Now.ToUniversalTime()
             };
 
             await giftsRepository.UpdateGiftAsync(updatedGift);
@@ -85,7 +84,7 @@ namespace Prezentex.Controllers
 
         [SwaggerOperation(Summary = "Delete gift")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteGift(Guid id)
+        public async Task<ActionResult> DeleteGiftAsync(Guid id)
         {
             var existingGift = await giftsRepository.GetGiftAsync(id);
             if (existingGift == null)

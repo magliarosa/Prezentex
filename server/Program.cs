@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Prezentex.Repositories;
+using Prezentex.Repositories.Gifts;
 using Prezentex.Settings;
 using System.Net.Mime;
 using System.Text.Json;
@@ -9,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 var postgresSettings = builder.Configuration.GetSection(nameof(PostgresSettings)).Get<PostgresSettings>();
 
 // Add services to the container.
-builder.Services.AddSingleton<IGiftsRepository, InMemGiftsRepository>();
 builder.Services.AddControllers(options =>
 {
     options.SuppressAsyncSuffixInActionNames = false;
@@ -31,6 +31,8 @@ builder.Services.AddHealthChecks()
 builder.Services.AddDbContext<EntitiesDbContext>(
     options => options.UseNpgsql(postgresSettings.ConnectionString)
 );
+
+builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
 
 var app = builder.Build();
 
