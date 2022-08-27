@@ -7,7 +7,7 @@ using Prezentex.Api.Controllers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Prezentex.UnitTests
+namespace Prezentex.UnitTests.ControllerTests
 {
     public class GiftsControllerTests
     {
