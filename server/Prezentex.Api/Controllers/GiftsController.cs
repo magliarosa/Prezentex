@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Prezentex.Dtos;
-using Prezentex.Entities;
-using Prezentex.Repositories;
+using Prezentex.Api.Dtos;
+using Prezentex.Api.Entities;
+using Prezentex.Api.Repositories;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace Prezentex.Controllers
+namespace Prezentex.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

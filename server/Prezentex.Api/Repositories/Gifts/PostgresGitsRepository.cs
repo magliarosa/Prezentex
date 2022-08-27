@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Prezentex.Entities;
+using Prezentex.Api.Entities;
 
-namespace Prezentex.Repositories.Gifts
+namespace Prezentex.Api.Repositories.Gifts
 {
     public class PostgresGitsRepository : IGiftsRepository
     {

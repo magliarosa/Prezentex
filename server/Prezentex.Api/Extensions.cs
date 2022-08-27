@@ -1,7 +1,7 @@
-﻿using Prezentex.Dtos;
-using Prezentex.Entities;
+﻿using Prezentex.Api.Dtos;
+using Prezentex.Api.Entities;
 
-namespace Prezentex
+namespace Prezentex.Api
 {
     public static class Extensions
     {

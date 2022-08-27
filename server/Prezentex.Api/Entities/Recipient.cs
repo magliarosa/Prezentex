@@ -1,4 +1,4 @@
-﻿namespace Prezentex.Entities
+﻿namespace Prezentex.Api.Entities
 {
     public record Recipient : Entity
     {
