@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Prezentex.Repositories;
+using Prezentex.Api.Repositories;
 
 #nullable disable
 
-namespace Prezentex.Migrations
+namespace Prezentex.Api.Migrations
 {
     [DbContext(typeof(EntitiesDbContext))]
     [Migration("20220824195347_InitialDatabase")]

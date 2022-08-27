@@ -1,6 +1,6 @@
-﻿using Prezentex.Entities;
+﻿using Prezentex.Api.Entities;
 
-namespace Prezentex.Repositories
+namespace Prezentex.Api.Repositories
 {
     public class InMemGiftsRepository : IGiftsRepository
     {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Prezentex.Migrations
+namespace Prezentex.Api.Migrations
 {
     public partial class InitialDatabase : Migration
     {

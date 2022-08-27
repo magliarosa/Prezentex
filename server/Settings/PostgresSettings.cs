@@ -1,4 +1,4 @@
-﻿namespace Prezentex.Settings
+﻿namespace Prezentex.Api.Settings
 {
     public class PostgresSettings
     {
