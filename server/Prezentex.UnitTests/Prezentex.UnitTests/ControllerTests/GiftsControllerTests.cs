@@ -58,6 +58,21 @@ namespace Prezentex.UnitTests.ControllerTests
                 });
         }
 
+        [Fact]
+        public async Task GetGiftsAsync_WithUnexistingGifts_ReturnsEmptyArray()
+        {
+            //Arrange
+            repositoryStub.Setup(repo => repo.GetGiftsAsync())
+                .ReturnsAsync(new Gift[0]);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.GetGiftsAsync();
+
+            //Assert
+            result.Should().BeEmpty();
+        }
+
         private Gift CreateRandomGift()
         {
             return new()
