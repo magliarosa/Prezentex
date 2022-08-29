@@ -49,13 +49,9 @@ namespace Prezentex.UnitTests.ControllerTests
             //Assert
             result.Value.Should().BeEquivalentTo(
                 expectedGift,
-                options =>
-                {
-                    options
+                options => options
                     .ComparingByMembers<Gift>()
-                    .ExcludingMissingMembers();
-                    return options;
-                });
+                    .ExcludingMissingMembers());
         }
 
         [Fact]
@@ -71,6 +67,51 @@ namespace Prezentex.UnitTests.ControllerTests
 
             //Assert
             result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetGiftsAsync_WithExistingGifts_ReturnsArrayWithGifts()
+        {
+            //Arrange
+            var expectedArray = new Gift[]
+            {
+                CreateRandomGift(),
+                CreateRandomGift()
+            };
+            repositoryStub.Setup(repo => repo.GetGiftsAsync())
+                .ReturnsAsync(expectedArray);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.GetGiftsAsync();
+
+            //Assert
+            result.Should().BeEquivalentTo(
+                expectedArray,
+                options => options
+                    .ComparingByMembers<Gift>()
+                    .ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task CreateGiftAsync_WithGiftToCreate_ReturnsACreatedGift()
+        {
+            //Arrange
+            var giftToCreate = new CreateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(2000), Guid.NewGuid().ToString());
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.CreateGiftAsync(giftToCreate);
+
+            //Assert
+            var createdGift = (result.Result as CreatedAtActionResult).Value as GiftDto;
+            giftToCreate.Should().BeEquivalentTo(
+                createdGift,
+                options => options
+                .ComparingByMembers<GiftDto>()
+                .ExcludingMissingMembers());
+            createdGift.Id.Should().NotBeEmpty();
+            createdGift.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0,0,1));
         }
 
         private Gift CreateRandomGift()
