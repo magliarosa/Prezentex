@@ -49,13 +49,9 @@ namespace Prezentex.UnitTests.ControllerTests
             //Assert
             result.Value.Should().BeEquivalentTo(
                 expectedGift,
-                options =>
-                {
-                    options
+                options => options
                     .ComparingByMembers<Gift>()
-                    .ExcludingMissingMembers();
-                    return options;
-                });
+                    .ExcludingMissingMembers());
         }
 
         [Fact]
@@ -71,6 +67,30 @@ namespace Prezentex.UnitTests.ControllerTests
 
             //Assert
             result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetGiftsAsync_WithExistingGifts_ReturnsArrayWithGifts()
+        {
+            //Arrange
+            var expectedArray = new Gift[]
+            {
+                CreateRandomGift(),
+                CreateRandomGift()
+            };
+            repositoryStub.Setup(repo => repo.GetGiftsAsync())
+                .ReturnsAsync(expectedArray);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.GetGiftsAsync();
+
+            //Assert
+            result.Should().BeEquivalentTo(
+                expectedArray,
+                options => options
+                    .ComparingByMembers<Gift>()
+                    .ExcludingMissingMembers());
         }
 
         private Gift CreateRandomGift()
