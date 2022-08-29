@@ -93,6 +93,27 @@ namespace Prezentex.UnitTests.ControllerTests
                     .ExcludingMissingMembers());
         }
 
+        [Fact]
+        public async Task CreateGiftAsync_WithGiftToCreate_ReturnsACreatedGift()
+        {
+            //Arrange
+            var giftToCreate = new CreateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(2000), Guid.NewGuid().ToString());
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.CreateGiftAsync(giftToCreate);
+
+            //Assert
+            var createdGift = (result.Result as CreatedAtActionResult).Value as GiftDto;
+            giftToCreate.Should().BeEquivalentTo(
+                createdGift,
+                options => options
+                .ComparingByMembers<GiftDto>()
+                .ExcludingMissingMembers());
+            createdGift.Id.Should().NotBeEmpty();
+            createdGift.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0,0,1));
+        }
+
         private Gift CreateRandomGift()
         {
             return new()
