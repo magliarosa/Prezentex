@@ -94,7 +94,7 @@ namespace Prezentex.UnitTests.ControllerTests
         }
 
         [Fact]
-        public async Task CreateGiftAsync_WithGiftToCreate_ReturnsACreatedGift()
+        public async Task CreateGiftAsync_WithGiftToCreate_ReturnsCreatedGift()
         {
             //Arrange
             var giftToCreate = new CreateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(2000), Guid.NewGuid().ToString());
@@ -112,6 +112,78 @@ namespace Prezentex.UnitTests.ControllerTests
                 .ExcludingMissingMembers());
             createdGift.Id.Should().NotBeEmpty();
             createdGift.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0,0,1));
+        }
+
+        [Fact]
+        public async Task UpdateGiftAsync_WithExistingGift_ReturnsModifiedGift()
+        {
+            //Arrange
+            var existingGift = CreateRandomGift();
+            var giftToUpdate = new UpdateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(1000), Guid.NewGuid().ToString());
+            var giftId = existingGift.Id;
+            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingGift);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.UpdateGiftAsync(giftId, giftToUpdate);
+
+            //Assert
+            var updatedGift = (result.Result as OkObjectResult).Value as GiftDto;
+            updatedGift.Should().BeEquivalentTo(
+                giftToUpdate,
+                options => options
+                .ComparingByMembers<GiftDto>()
+                .ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task UpdateGiftAsync_WithUnexistingGift_ReturnsNotFound()
+        {
+            //Arrange
+            var giftToUpdate = new UpdateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(1000), Guid.NewGuid().ToString());
+            var giftId = Guid.NewGuid();
+            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((Gift)null);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.UpdateGiftAsync(giftId, giftToUpdate);
+
+            //Assert
+            result.Result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task DeleteGiftAsync_WithExistingGift_ReturnsNoContent()
+        {
+            //Arrange
+            var existingGift = CreateRandomGift();
+            var giftId = existingGift.Id;
+            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingGift);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.DeleteGiftAsync(giftId);
+
+            //Assert
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        public async Task DeleteGiftAsync_WithUnexistingGift_ReturnsNotFound()
+        {
+            //Arrange
+            var giftId = Guid.NewGuid();
+            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((Gift)null);
+            var controller = new GiftsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.DeleteGiftAsync(giftId);
+
+            //Assert
+            result.Should().BeOfType<NotFoundResult>();
         }
 
         private Gift CreateRandomGift()
