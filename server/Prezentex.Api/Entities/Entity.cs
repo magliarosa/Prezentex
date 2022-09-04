@@ -1,6 +1,6 @@
 ﻿namespace Prezentex.Api.Entities
 {
-    public abstract record Entity
+    public abstract class Entity
     {
         public Guid Id { get; init; }
         public DateTimeOffset CreatedDate { get; init; }

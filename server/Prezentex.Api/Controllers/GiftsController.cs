@@ -45,8 +45,8 @@ namespace Prezentex.Api.Controllers
         {
             var newGift = new Gift()
             {
-                CreatedDate = DateTimeOffset.Now.ToUniversalTime(),
-                UpdatedDate = DateTimeOffset.Now.ToUniversalTime(),
+                CreatedDate = DateTimeOffset.UtcNow,
+                UpdatedDate = DateTimeOffset.UtcNow,
                 Description = giftDto.Description,
                 Id = Guid.NewGuid(),
                 Name = giftDto.Name,
@@ -68,13 +68,14 @@ namespace Prezentex.Api.Controllers
             if (existingGift == null)
                 return NotFound();
 
-            var updatedGift = existingGift with
+            var updatedGift = new Gift
             {
+                Id = existingGift.Id,
                 Description = giftDto.Description,
                 Name = giftDto.Name,
                 Price = giftDto.Price,
                 ProductUrl = giftDto.ProductUrl,
-                UpdatedDate = DateTimeOffset.Now.ToUniversalTime()
+                UpdatedDate = DateTimeOffset.UtcNow
             };
 
             await giftsRepository.UpdateGiftAsync(updatedGift);
