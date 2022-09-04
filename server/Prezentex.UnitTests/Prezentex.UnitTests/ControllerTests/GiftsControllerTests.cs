@@ -50,7 +50,6 @@ namespace Prezentex.UnitTests.ControllerTests
             result.Value.Should().BeEquivalentTo(
                 expectedGift,
                 options => options
-                    .ComparingByMembers<Gift>()
                     .ExcludingMissingMembers());
         }
 
@@ -89,7 +88,6 @@ namespace Prezentex.UnitTests.ControllerTests
             result.Should().BeEquivalentTo(
                 expectedArray,
                 options => options
-                    .ComparingByMembers<Gift>()
                     .ExcludingMissingMembers());
         }
 
@@ -97,7 +95,11 @@ namespace Prezentex.UnitTests.ControllerTests
         public async Task CreateGiftAsync_WithGiftToCreate_ReturnsCreatedGift()
         {
             //Arrange
-            var giftToCreate = new CreateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(2000), Guid.NewGuid().ToString());
+            var giftToCreate = new CreateGiftDto(
+                Guid.NewGuid().ToString(), 
+                Guid.NewGuid().ToString(), 
+                rand.Next(2000), 
+                Guid.NewGuid().ToString());
             var controller = new GiftsController(repositoryStub.Object);
 
             //Act
@@ -119,7 +121,11 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var existingGift = CreateRandomGift();
-            var giftToUpdate = new UpdateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(1000), Guid.NewGuid().ToString());
+            var giftToUpdate = new UpdateGiftDto(
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(), 
+                rand.Next(1000),
+                Guid.NewGuid().ToString());
             var giftId = existingGift.Id;
             repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
@@ -130,18 +136,18 @@ namespace Prezentex.UnitTests.ControllerTests
 
             //Assert
             var updatedGift = (result.Result as OkObjectResult).Value as GiftDto;
-            updatedGift.Should().BeEquivalentTo(
-                giftToUpdate,
-                options => options
-                .ComparingByMembers<GiftDto>()
-                .ExcludingMissingMembers());
+            updatedGift.Should().BeEquivalentTo(giftToUpdate);
         }
 
         [Fact]
         public async Task UpdateGiftAsync_WithUnexistingGift_ReturnsNotFound()
         {
             //Arrange
-            var giftToUpdate = new UpdateGiftDto(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), rand.Next(1000), Guid.NewGuid().ToString());
+            var giftToUpdate = new UpdateGiftDto(
+                Guid.NewGuid().ToString(), 
+                Guid.NewGuid().ToString(), 
+                rand.Next(1000), 
+                Guid.NewGuid().ToString());
             var giftId = Guid.NewGuid();
             repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Gift)null);
