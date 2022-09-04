@@ -19,8 +19,11 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore **/Prezentex.Test
+      run: dotnet restore
+      working-directory: src/Prezentex
     - name: Build
-      run: dotnet build **/Prezentex.Test --no-restore
+      run: dotnet build --no-restore
+      working-directory: src/Prezentex
     - name: Test
-      run: dotnet test **/Prezentex.Test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal
+      working-directory: src/Prezentex
