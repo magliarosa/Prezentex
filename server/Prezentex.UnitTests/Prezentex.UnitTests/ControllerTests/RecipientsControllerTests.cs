@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Prezentex.Api.Controllers;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories.Recipients;
@@ -102,7 +103,7 @@ namespace Prezentex.UnitTests.ControllerTests
                 Guid.NewGuid().ToString(),
                 DateTimeOffset.UtcNow.Date,
                 DateTimeOffset.UtcNow.Date);
-            var controller = new RecipientController(repositoryStub.Object);
+            var controller = new RecipientsController(repositoryStub.Object);
 
             //Act
             var result = await controller.CreateRecipientAsync(recipientToCreate);
@@ -132,7 +133,7 @@ namespace Prezentex.UnitTests.ControllerTests
             var recipientId = existingRecipient.Id;
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
-            var controller = new RecipientController(repositoryStub.Object);
+            var controller = new RecipientsController(repositoryStub.Object);
 
             //Act
             var result = await controller.UpdateRecipientAsync(recipientId, recipientToUpdate);
@@ -193,7 +194,7 @@ namespace Prezentex.UnitTests.ControllerTests
             var result = await controller.DeleteRecipientAsync(recipientId);
 
             //Assert
-            result.ShouldBeOfType<NotFoundResult>();
+            result.Should().BeOfType<NotFoundResult>();
         }
 
         [Fact]
@@ -210,7 +211,7 @@ namespace Prezentex.UnitTests.ControllerTests
             var result = await controller.AddGiftToRecipientAsync(giftToAdd.Id, recipient.Id);
 
             //Assert
-            result.ShouldBeOfType<NoContentResult>();
+            result.Should().BeOfType<NoContentResult>();
         }
 
         [Fact]
@@ -227,7 +228,7 @@ namespace Prezentex.UnitTests.ControllerTests
             var result = await controller.RemoveGiftFromRecipientAsync(giftToAdd.Id, recipient.Id);
 
             //Assert
-            result.ShouldBeOfType<NoContentResult>();
+            result.Should().BeOfType<NoContentResult>();
         }
 
         private Recipient CreateRandomRecipient()
