@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
@@ -99,8 +100,8 @@ namespace Prezentex.UnitTests.ControllerTests
             var recipientToCreate = new CreateRecipientDto(
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                rand.Next(2000),
-                Guid.NewGuid().ToString());
+                DateTimeOffset.UtcNow.Date,
+                DateTimeOffset.UtcNow.Date);
             var controller = new RecipientController(repositoryStub.Object);
 
             //Act
@@ -125,8 +126,9 @@ namespace Prezentex.UnitTests.ControllerTests
             var recipientToUpdate = new UpdateRecipientDto(
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                rand.Next(1000),
-                Guid.NewGuid().ToString());
+                DateTimeOffset.UtcNow.Date,
+                DateTimeOffset.UtcNow.Date);
+                
             var recipientId = existingRecipient.Id;
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
@@ -147,8 +149,8 @@ namespace Prezentex.UnitTests.ControllerTests
             var recipientToUpdate = new UpdateRecipientDto(
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                rand.Next(1000),
-                Guid.NewGuid().ToString());
+                DateTimeOffset.UtcNow.Date,
+                DateTimeOffset.UtcNow.Date);
             var recipientId = Guid.NewGuid();
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Recipient)null);
@@ -169,7 +171,7 @@ namespace Prezentex.UnitTests.ControllerTests
             var recipientId = existingRecipient.Id;
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
-            var controller = new GiftsRecipient(repositoryStub.Object);
+            var controller = new RecipientsController(repositoryStub.Object);
 
             //Act
             var result = await controller.DeleteRecipientAsync(recipientId);
@@ -178,6 +180,7 @@ namespace Prezentex.UnitTests.ControllerTests
             result.Should().BeOfType<NoContentResult>();
         }
 
+        [Fact]
         public async Task DeleteRecipientAsync_WithUnexistingRecipient_ReturnsNotFound()
         {
             //Arrange
@@ -190,10 +193,63 @@ namespace Prezentex.UnitTests.ControllerTests
             var result = await controller.DeleteRecipientAsync(recipientId);
 
             //Assert
-            result.Should().BeOfType<NotFoundResult>();
+            result.ShouldBeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task AddGiftToRecipientAsync_WithGiftIdToAdd_ReturnsNoContent()
+        {
+            //Arrange
+            var giftToAdd = CreateRandomGift();
+            var recipient = CreateRandomRecipient();
+            repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(recipient);
+            var controller = new RecipientsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.AddGiftToRecipientAsync(giftToAdd.Id, recipient.Id);
+
+            //Assert
+            result.ShouldBeOfType<NoContentResult>();
+        }
+
+        [Fact]
+        public async Task RemoveGiftFromRecipientAsync_WithGiftIdToDelete_ReturnsNoContent()
+        {
+            //Arrange
+            var giftToAdd = CreateRandomGift();
+            var recipient = CreateRandomRecipient();
+            repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(recipient);
+            var controller = new RecipientsController(repositoryStub.Object);
+
+            //Act
+            var result = await controller.RemoveGiftFromRecipientAsync(giftToAdd.Id, recipient.Id);
+
+            //Assert
+            result.ShouldBeOfType<NoContentResult>();
         }
 
         private Recipient CreateRandomRecipient()
+        {
+            return new()
+            {
+                Id = Guid.NewGuid(),
+                Name = Guid.NewGuid().ToString(),
+                CreatedDate = DateTimeOffset.UtcNow,
+                UpdatedDate = DateTimeOffset.UtcNow,
+                BirthDay = DateTimeOffset.UtcNow.Date,
+                NameDay = DateTimeOffset.UtcNow.Date,
+                Note = Guid.NewGuid().ToString(),
+                Gifts = new List<Gift>() 
+                {
+                    CreateRandomGift(),
+                    CreateRandomGift()
+                }
+            };
+        }
+
+        private Gift CreateRandomGift()
         {
             return new()
             {
