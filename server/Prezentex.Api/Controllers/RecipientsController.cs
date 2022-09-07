@@ -99,7 +99,7 @@ namespace Prezentex.Api.Controllers
         }
 
         [SwaggerOperation(Summary = "Add gift to recipient by Ids")]
-        [HttpDelete("{recipientId}/gifts")]
+        [HttpPost("{recipientId}")]
         public async Task<ActionResult> AddGiftToRecipientAsync(Guid recipientId, [FromBody] Guid giftId)
         {
             var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
@@ -112,7 +112,7 @@ namespace Prezentex.Api.Controllers
         }
 
         
-        [SwaggerOperation(Summary = "Add gift to recipient by Ids")]
+        [SwaggerOperation(Summary = "Remove gift from recipient by Ids")]
         [HttpDelete("{recipientId}/gifts")]
         public async Task<ActionResult> RemoveGiftFromRecipientAsync(Guid recipientId, [FromBody] Guid giftId)
         {

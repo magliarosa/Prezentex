@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Gifts;
+using Prezentex.Api.Repositories.Recipients;
 using Prezentex.Api.Settings;
 using System.Net.Mime;
 using System.Text.Json;
@@ -33,6 +34,7 @@ builder.Services.AddDbContext<EntitiesDbContext>(
 );
 
 builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
+builder.Services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
 
 var app = builder.Build();
 
