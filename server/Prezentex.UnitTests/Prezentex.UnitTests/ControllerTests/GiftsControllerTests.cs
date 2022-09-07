@@ -177,6 +177,7 @@ namespace Prezentex.UnitTests.ControllerTests
             result.Should().BeOfType<NoContentResult>();
         }
 
+        [Fact]
         public async Task DeleteGiftAsync_WithUnexistingGift_ReturnsNotFound()
         {
             //Arrange
