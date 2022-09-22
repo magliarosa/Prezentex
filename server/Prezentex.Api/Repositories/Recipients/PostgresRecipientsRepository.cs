@@ -15,7 +15,7 @@ namespace Prezentex.Api.Repositories.Recipients
         {
             var gift = await context.Gifts.Where(x => x.Id == giftId).SingleOrDefaultAsync();
             var recipient = await context.Recipients.Where(x => x.Id == recipientId).SingleOrDefaultAsync();
-            recipient.Gifts.Append(gift);
+            recipient.Gifts.Add(gift);
             await context.SaveChangesAsync();
         }
 
@@ -34,7 +34,7 @@ namespace Prezentex.Api.Repositories.Recipients
 
         public async Task<Recipient> GetRecipientAsync(Guid id)
         {
-            var recipient = await context.Recipients.Where(x => x.Id == id).SingleOrDefaultAsync();
+            var recipient = await context.Recipients.Where(x => x.Id == id).Include(recipient => recipient.Gifts).SingleOrDefaultAsync();
             return await Task.FromResult(recipient);
         }
 
@@ -48,7 +48,7 @@ namespace Prezentex.Api.Repositories.Recipients
         {
             var gift = await context.Gifts.Where(x => x.Id == giftId).SingleOrDefaultAsync();
             var recipient = await context.Recipients.Where(x => x.Id == recipientId).SingleOrDefaultAsync();
-            recipient.Gifts = recipient.Gifts.Where(x => x.Id != gift.Id);
+            recipient.Gifts.Remove(gift);
             await context.SaveChangesAsync();
 
         }
