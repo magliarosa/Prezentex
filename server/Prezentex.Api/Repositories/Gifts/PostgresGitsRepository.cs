@@ -3,7 +3,7 @@ using Prezentex.Api.Entities;
 
 namespace Prezentex.Api.Repositories.Gifts
 {
-    public class PostgresGitsRepository : IGiftsRepository
+    public class PostgresGitsRepository : IUsersRepository
     {
         private readonly EntitiesDbContext dbContext;
         public PostgresGitsRepository(EntitiesDbContext dbContext)
