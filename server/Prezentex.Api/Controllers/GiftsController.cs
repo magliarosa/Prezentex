@@ -11,9 +11,9 @@ namespace Prezentex.Api.Controllers
     [ApiController]
     public class GiftsController : ControllerBase
     {
-        private readonly IUsersRepository giftsRepository;
+        private readonly IGiftsRepository giftsRepository;
 
-        public GiftsController(IUsersRepository giftsRepository)
+        public GiftsController(IGiftsRepository giftsRepository)
         {
             this.giftsRepository = giftsRepository;
         }

@@ -26,5 +26,15 @@ namespace Prezentex.Api
                 recipient.NameDay,
                 recipient.Gifts);
         }
+        public static UserDto AsDto(this User user)
+        {
+            return new UserDto(
+                user.Id,
+                user.CreatedDate,
+                user.Username,
+                user.Gifts,
+                user.Recipients);
+        }
+
     }
 }

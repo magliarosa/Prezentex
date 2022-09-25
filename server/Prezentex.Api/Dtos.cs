@@ -4,21 +4,21 @@ using System.ComponentModel.DataAnnotations;
 namespace Prezentex.Api.Dtos
 {
     public record GiftDto(
-        Guid Id, 
-        DateTimeOffset CreatedDate, 
-        string Name, 
-        string Description, 
-        decimal Price, 
+        Guid Id,
+        DateTimeOffset CreatedDate,
+        string Name,
+        string Description,
+        decimal Price,
         string ProductUrl);
     public record CreateGiftDto(
-        [Required] string Name, 
-        [StringLength(500)] string Description, 
-        decimal Price, 
+        [Required] string Name,
+        [StringLength(500)] string Description,
+        decimal Price,
         string ProductUrl);
     public record UpdateGiftDto(
-        [Required] string Name, 
-        [StringLength(500)] string Description, 
-        decimal Price, 
+        [Required] string Name,
+        [StringLength(500)] string Description,
+        decimal Price,
         string ProductUrl);
 
     public record RecipientDto(
@@ -39,4 +39,9 @@ namespace Prezentex.Api.Dtos
         string Note,
         DateTimeOffset BirthDay,
         DateTimeOffset NameDay);
+
+    public record UserDto(
+        [Required] string Username,
+        ICollection<Gift> Gifts,
+        ICollection<Recipient> Recipients);
 }

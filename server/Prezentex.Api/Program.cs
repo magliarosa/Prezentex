@@ -33,7 +33,7 @@ builder.Services.AddDbContext<EntitiesDbContext>(
     options => options.UseNpgsql(postgresSettings.ConnectionString)
 );
 
-builder.Services.AddScoped<IUsersRepository, PostgresGitsRepository>();
+builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
 builder.Services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
 
 var app = builder.Build();

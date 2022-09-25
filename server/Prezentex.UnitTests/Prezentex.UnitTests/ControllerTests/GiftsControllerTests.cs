@@ -15,7 +15,7 @@ namespace Prezentex.UnitTests.ControllerTests
     {
         //naming convention: UnitOfWork_StateUnderTest_ExpectedBehavior
 
-        private readonly Mock<IUsersRepository> repositoryStub = new();
+        private readonly Mock<IGiftsRepository> repositoryStub = new();
         private readonly Random rand = new Random();
 
         [Fact]

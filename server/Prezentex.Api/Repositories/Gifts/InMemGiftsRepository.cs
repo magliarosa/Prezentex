@@ -2,7 +2,7 @@
 
 namespace Prezentex.Api.Repositories
 {
-    public class InMemGiftsRepository : IUsersRepository
+    public class InMemGiftsRepository : IGiftsRepository
     {
         private readonly List<Gift> gifts = new()
         {

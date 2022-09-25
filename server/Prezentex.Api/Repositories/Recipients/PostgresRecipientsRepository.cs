@@ -40,7 +40,7 @@ namespace Prezentex.Api.Repositories.Recipients
 
         public async Task<IEnumerable<Recipient>> GetRecipientsAsync()
         {
-            var recipients = await context.Recipients.ToArrayAsync();
+            var recipients = await context.Recipients.ToListAsync();
             return await Task.FromResult(recipients);
         }
 
@@ -50,7 +50,6 @@ namespace Prezentex.Api.Repositories.Recipients
             var recipient = await context.Recipients.Where(x => x.Id == recipientId).SingleOrDefaultAsync();
             recipient.Gifts.Remove(gift);
             await context.SaveChangesAsync();
-
         }
 
         public async Task UpdateRecipientAsync(Recipient recipient)
@@ -58,7 +57,6 @@ namespace Prezentex.Api.Repositories.Recipients
             var existingRecipient = await context.Recipients.FindAsync(recipient.Id);
             context.Entry(existingRecipient).CurrentValues.SetValues(recipient);
             await context.SaveChangesAsync();
-
         }
     }
 }
