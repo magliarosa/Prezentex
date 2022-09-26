@@ -42,7 +42,7 @@ namespace Prezentex.Api.Repositories.Users
 
         public async Task<User> GetUserAsync(Guid id)
         {
-            var user = await context.Users.SingleOrDefaultAsync(x => x.Id == id);
+            var user = await context.Users.Include(user => user.Gifts).Include(user => user.Recipients).SingleOrDefaultAsync(x => x.Id == id);
             return user;
         }
 

@@ -35,6 +35,5 @@ namespace Prezentex.Api
                 user.Gifts,
                 user.Recipients);
         }
-
     }
 }

@@ -22,9 +22,9 @@ namespace Prezentex.Api.Controllers
         [HttpGet]
         public async Task<IEnumerable<RecipientDto>> GetRecipientsAsync()
         {
-            var gifts = await recipientsRepository.GetRecipientsAsync();
-            var giftsDto = gifts.Select(recipient => recipient.AsDto());
-            return giftsDto;
+            var recipients = await recipientsRepository.GetRecipientsAsync();
+            var recipientsDto = recipients.Select(recipient => recipient.AsDto());
+            return recipientsDto;
         }
 
         [SwaggerOperation(Summary = "Get recipient by ID")]

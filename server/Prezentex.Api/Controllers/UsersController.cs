@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
+using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories;
+using Prezentex.Api.Repositories.Recipients;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Net;
 
 namespace Prezentex.Api.Controllers
 {
@@ -11,24 +14,28 @@ namespace Prezentex.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUsersRepository usersRepository;
+        private readonly IGiftsRepository giftsRepository;
+        private readonly IRecipientsRepository recipientsRepository;
 
-        public UsersController(IUsersRepository usersRepository)
+        public UsersController(IUsersRepository usersRepository, IGiftsRepository giftsRepository, IRecipientsRepository recipientsRepository)
         {
             this.usersRepository = usersRepository;
+            this.giftsRepository = giftsRepository;
+            this.recipientsRepository = recipientsRepository;
         }
 
         [SwaggerOperation(Summary = "Get all users")]
         [HttpGet]
-        public async Task<IEnumerable<RecipientDto>> GetRecipientsAsync()
+        public async Task<IEnumerable<UserDto>> GetUsersAsync()
         {
-            var gifts = await recipientsRepository.GetRecipientsAsync();
-            var giftsDto = gifts.Select(recipient => recipient.AsDto());
-            return giftsDto;
+            var users = await usersRepository.GetUsersAsync();
+            var usersDto = users.Select(user => user.AsDto());
+            return usersDto;
         }
 
         [SwaggerOperation(Summary = "Get user by ID")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<RecipientDto>> GetRecipientAsync(Guid id)
+        public async Task<ActionResult<UserDto>> GetUserAsync(Guid id)
         {
             var user = await usersRepository.GetUserAsync(id);
 
@@ -38,88 +45,121 @@ namespace Prezentex.Api.Controllers
             return user.AsDto();
         }
 
-        [SwaggerOperation(Summary = "Create recipient")]
+        [SwaggerOperation(Summary = "Create user")]
         [HttpPost]
-        public async Task<ActionResult<RecipientDto>> CreateRecipientAsync(CreateRecipientDto recipientDto)
+        public async Task<ActionResult<UserDto>> CreateUserAsync(CreateUserDto userDto)
         {
-            var newRecipient = new Recipient()
+            var newUser = new User
             {
                 CreatedDate = DateTimeOffset.UtcNow,
                 UpdatedDate = DateTimeOffset.UtcNow,
                 Id = Guid.NewGuid(),
-                Name = recipientDto.Name,
-                BirthDay = recipientDto.BirthDay,
-                NameDay = recipientDto.NameDay,
-                Note = recipientDto.Note
+                Username = userDto.Username,
             };
 
-            await recipientsRepository.CreateRecipientAsync(newRecipient);
+            await usersRepository.CreateUserAsync(newUser);
 
-            return CreatedAtAction(nameof(GetRecipientAsync), new { Id = newRecipient.Id }, newRecipient.AsDto());
+            return CreatedAtAction(nameof(GetUserAsync), new { Id = newUser.Id }, newUser.AsDto());
         }
 
-        [SwaggerOperation(Summary = "Update recipient")]
+        [SwaggerOperation(Summary = "Update user")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<GiftDto>> UpdateRecipientAsync(Guid id, UpdateRecipientDto recipientDto)
+        public async Task<ActionResult<UserDto>> UpdateRecipientAsync(Guid id, UpdateUserDto userDto)
         {
-            var existingRecipient = await recipientsRepository.GetRecipientAsync(id);
+            var existingUser = await usersRepository.GetUserAsync(id);
 
-            if (existingRecipient == null)
+            if (existingUser == null)
                 return NotFound();
 
-            var updatedRecipient = new Recipient
+            var updatedUser = new User
             {
-                Id = existingRecipient.Id,
-                Name = recipientDto.Name,
+                Id = existingUser.Id,
+                Username = userDto.Username,
                 UpdatedDate = DateTimeOffset.UtcNow,
-                BirthDay = recipientDto.BirthDay,
-                NameDay = recipientDto.NameDay,
-                CreatedDate = existingRecipient.CreatedDate,
-                Gifts = existingRecipient.Gifts,
-                Note = recipientDto.Note
+                CreatedDate = existingUser.CreatedDate,
+                Gifts = existingUser.Gifts,
+                Recipients = existingUser.Recipients,
             };
 
-            await recipientsRepository.UpdateRecipientAsync(updatedRecipient);
+            await usersRepository.UpdateUserAsync(updatedUser);
 
-            return Ok(updatedRecipient.AsDto());
+            return Ok(updatedUser.AsDto());
         }
 
-        [SwaggerOperation(Summary = "Delete recipient")]
+        [SwaggerOperation(Summary = "Delete user")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteRecipientAsync(Guid id)
+        public async Task<ActionResult> DeleteUserAsync(Guid id)
         {
-            var existingRecipient = await recipientsRepository.GetRecipientAsync(id);
-            if (existingRecipient == null)
+            var existingUser = await usersRepository.GetUserAsync(id);
+            if (existingUser == null)
                 return NotFound();
 
-            await recipientsRepository.DeleteRecipientAsync(id);
+            await usersRepository.DeleteUserAsync(id);
 
             return NoContent();
         }
 
-        [SwaggerOperation(Summary = "Add gift to recipient by Ids")]
-        [HttpPost("{recipientId}")]
-        public async Task<ActionResult> AddGiftToRecipientAsync(Guid recipientId, [FromBody] Guid giftId)
+        [SwaggerOperation(Summary = "Add gift to user by Id")]
+        [HttpPost("{userId}/gifts")]
+        public async Task<ActionResult> AddGiftToUserAsync(Guid userId, AddGiftToUserDto addGiftToUserDto)
         {
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-            if (recipient == null)
+            var giftId = addGiftToUserDto.GiftId;
+            var user = await usersRepository.GetUserAsync(userId);
+            var gift = await giftsRepository.GetGiftAsync(addGiftToUserDto.GiftId);
+            
+            if (user == null || gift == null)
                 return NotFound();
-
-            await recipientsRepository.AddGiftToRecipientAsync(recipientId, giftId);
+            
+            await usersRepository.AddGiftToUserAsync(userId, giftId);
 
             return NoContent();
         }
 
 
-        [SwaggerOperation(Summary = "Remove gift from recipient by Ids")]
-        [HttpDelete("{recipientId}/gifts")]
-        public async Task<ActionResult> RemoveGiftFromRecipientAsync(Guid recipientId, [FromBody] Guid giftId)
+        [SwaggerOperation(Summary = "Remove gift from user by Id")]
+        [HttpDelete("{userId}/gifts")]
+        public async Task<ActionResult> RemoveGiftFromUserAsync(Guid userId, RemoveGiftFromUserDto removeGiftFromUserDto)
         {
+            var user = await usersRepository.GetUserAsync(userId);
+            var giftId = removeGiftFromUserDto.GiftId;
+            var gift = await giftsRepository.GetGiftAsync(giftId);
+
+            if (user == null || gift == null || !user.Gifts.Any(gift => gift.Id == giftId))
+                return NotFound();
+            
+            await usersRepository.RemoveGiftFromUserAsync(userId, giftId);
+
+            return NoContent();
+        }
+        [SwaggerOperation(Summary = "Add recipient to user by Id")]
+        [HttpPost("{userId}/recipients")]
+        public async Task<ActionResult> AddRecipientToUserAsync(Guid userId, AddRecipientToUserDto addRecipientToUserDto)
+        {
+            var recipientId = addRecipientToUserDto.RecipientId;
+            var user = await usersRepository.GetUserAsync(userId);
             var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-            if (recipient == null)
+
+            if (user == null || recipient == null)
                 return NotFound();
 
-            await recipientsRepository.RemoveGiftFromRecipientAsync(recipientId, giftId);
+            await usersRepository.AddRecipientToUserAsync(userId, recipientId);
+
+            return NoContent();
+        }
+
+
+        [SwaggerOperation(Summary = "Remove recipient from user by Id")]
+        [HttpDelete("{userId}/recipients")]
+        public async Task<ActionResult> RemoveRecipientFromUserAsync(Guid userId, RemoveRecipientFromUserDto removeRecipientFromUserDto)
+        {
+            var user = await usersRepository.GetUserAsync(userId);
+            var recipientId = removeRecipientFromUserDto.RecipientId;
+            var gift = await giftsRepository.GetGiftAsync(recipientId);
+
+            if (user == null || gift == null || !user.Recipients.Any(recipient => recipient.Id == recipientId))
+                return NotFound();
+
+            await usersRepository.RemoveRecipientFromUserAsync(userId, recipientId);
 
             return NoContent();
         }

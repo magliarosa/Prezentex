@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Gifts;
 using Prezentex.Api.Repositories.Recipients;
+using Prezentex.Api.Repositories.Users;
 using Prezentex.Api.Settings;
 using System.Net.Mime;
 using System.Text.Json;
@@ -35,6 +36,7 @@ builder.Services.AddDbContext<EntitiesDbContext>(
 
 builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
 builder.Services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
+builder.Services.AddScoped<IUsersRepository, PostgresUsersRepository>();
 
 var app = builder.Build();
 
