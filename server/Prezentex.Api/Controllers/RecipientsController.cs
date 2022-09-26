@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories.Recipients;
@@ -76,7 +75,6 @@ namespace Prezentex.Api.Controllers
                 BirthDay = recipientDto.BirthDay,
                 NameDay = recipientDto.NameDay,
                 CreatedDate = existingRecipient.CreatedDate,
-                Gifts = existingRecipient.Gifts,
                 Note = recipientDto.Note
             };
 
@@ -94,33 +92,6 @@ namespace Prezentex.Api.Controllers
                 return NotFound();
 
             await recipientsRepository.DeleteRecipientAsync(id);
-
-            return NoContent();
-        }
-
-        [SwaggerOperation(Summary = "Add gift to recipient by Ids")]
-        [HttpPost("{recipientId}")]
-        public async Task<ActionResult> AddGiftToRecipientAsync(Guid recipientId, [FromBody] Guid giftId)
-        {
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-            if (recipient == null)
-                return NotFound();
-
-            await recipientsRepository.AddGiftToRecipientAsync(recipientId, giftId);
-
-            return NoContent();
-        }
-
-        
-        [SwaggerOperation(Summary = "Remove gift from recipient by Ids")]
-        [HttpDelete("{recipientId}/gifts")]
-        public async Task<ActionResult> RemoveGiftFromRecipientAsync(Guid recipientId, [FromBody] Guid giftId)
-        {
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-            if (recipient == null)
-                return NotFound();
-
-            await recipientsRepository.RemoveGiftFromRecipientAsync(recipientId, giftId);
 
             return NoContent();
         }

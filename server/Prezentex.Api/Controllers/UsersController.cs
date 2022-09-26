@@ -131,6 +131,7 @@ namespace Prezentex.Api.Controllers
 
             return NoContent();
         }
+
         [SwaggerOperation(Summary = "Add recipient to user by Id")]
         [HttpPost("{userId}/recipients")]
         public async Task<ActionResult> AddRecipientToUserAsync(Guid userId, AddRecipientToUserDto addRecipientToUserDto)

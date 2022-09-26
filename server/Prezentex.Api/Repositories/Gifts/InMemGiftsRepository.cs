@@ -10,6 +10,7 @@ namespace Prezentex.Api.Repositories
             new Gift { Id = Guid.NewGuid(), Name = "Road Bike", CreatedDate = DateTimeOffset.Now, UpdatedDate = DateTimeOffset.Now, Description = "Colnago with Campagnolo Record Groupset", Price = 15000, ProductUrl = "allegro.pl" },
         };
 
+
         public async Task CreateGiftAsync(Gift gift)
         {
             gifts.Add(gift);
@@ -43,6 +44,16 @@ namespace Prezentex.Api.Repositories
                 gifts[index] = gift;
 
             await Task.CompletedTask;
+        }
+        
+        public Task RemoveRecipientFromGiftAsync(Guid giftId, Guid recipientId)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public Task AddRecipientToGiftAsync(Guid giftId, Guid recipientId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

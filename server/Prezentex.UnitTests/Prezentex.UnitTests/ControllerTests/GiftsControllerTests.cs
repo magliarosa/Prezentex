@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using FluentAssertions;
+using Prezentex.Api.Repositories.Recipients;
 
 namespace Prezentex.UnitTests.ControllerTests
 {
@@ -15,17 +16,18 @@ namespace Prezentex.UnitTests.ControllerTests
     {
         //naming convention: UnitOfWork_StateUnderTest_ExpectedBehavior
 
-        private readonly Mock<IGiftsRepository> repositoryStub = new();
+        private readonly Mock<IGiftsRepository> giftsRepositoryStub = new();
+        private readonly Mock<IRecipientsRepository> recipientsRepositoryStub = new();
         private readonly Random rand = new Random();
 
         [Fact]
         public async Task GetGiftAsync_WithUnexistingGift_ReturnsNotFound()
         {
             //Arrange
-            repositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Gift)null);
-
-            var controller = new GiftsController(repositoryStub.Object);
+            
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.GetGiftAsync(Guid.NewGuid());
@@ -39,9 +41,9 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var expectedGift = CreateRandomGift();
-            repositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(expectedGift);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.GetGiftAsync(Guid.NewGuid());
@@ -57,9 +59,9 @@ namespace Prezentex.UnitTests.ControllerTests
         public async Task GetGiftsAsync_WithUnexistingGifts_ReturnsEmptyArray()
         {
             //Arrange
-            repositoryStub.Setup(repo => repo.GetGiftsAsync())
+            giftsRepositoryStub.Setup(repo => repo.GetGiftsAsync())
                 .ReturnsAsync(new Gift[0]);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.GetGiftsAsync();
@@ -77,9 +79,9 @@ namespace Prezentex.UnitTests.ControllerTests
                 CreateRandomGift(),
                 CreateRandomGift()
             };
-            repositoryStub.Setup(repo => repo.GetGiftsAsync())
+            giftsRepositoryStub.Setup(repo => repo.GetGiftsAsync())
                 .ReturnsAsync(expectedArray);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.GetGiftsAsync();
@@ -100,7 +102,7 @@ namespace Prezentex.UnitTests.ControllerTests
                 Guid.NewGuid().ToString(), 
                 rand.Next(2000), 
                 Guid.NewGuid().ToString());
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.CreateGiftAsync(giftToCreate);
@@ -127,9 +129,9 @@ namespace Prezentex.UnitTests.ControllerTests
                 rand.Next(1000),
                 Guid.NewGuid().ToString());
             var giftId = existingGift.Id;
-            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+            giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.UpdateGiftAsync(giftId, giftToUpdate);
@@ -149,9 +151,9 @@ namespace Prezentex.UnitTests.ControllerTests
                 rand.Next(1000), 
                 Guid.NewGuid().ToString());
             var giftId = Guid.NewGuid();
-            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+            giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Gift)null);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.UpdateGiftAsync(giftId, giftToUpdate);
@@ -166,9 +168,9 @@ namespace Prezentex.UnitTests.ControllerTests
             //Arrange
             var existingGift = CreateRandomGift();
             var giftId = existingGift.Id;
-            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+            giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.DeleteGiftAsync(giftId);
@@ -182,9 +184,9 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var giftId = Guid.NewGuid();
-            repositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
+            giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Gift)null);
-            var controller = new GiftsController(repositoryStub.Object);
+            var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
 
             //Act
             var result = await controller.DeleteGiftAsync(giftId);

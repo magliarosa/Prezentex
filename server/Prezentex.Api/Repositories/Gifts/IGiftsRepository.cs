@@ -9,6 +9,7 @@ namespace Prezentex.Api.Repositories
         Task CreateGiftAsync(Gift gift);
         Task UpdateGiftAsync(Gift gift);
         Task DeleteGiftAsync(Guid id);
-
+        Task AddRecipientToGiftAsync(Guid giftId, Guid recipientId);
+        Task RemoveRecipientFromGiftAsync(Guid giftId, Guid recipientId);
     }
 }

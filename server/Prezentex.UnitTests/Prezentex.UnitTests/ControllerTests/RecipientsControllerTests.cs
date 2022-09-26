@@ -197,40 +197,6 @@ namespace Prezentex.UnitTests.ControllerTests
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        [Fact]
-        public async Task AddGiftToRecipientAsync_WithGiftIdToAdd_ReturnsNoContent()
-        {
-            //Arrange
-            var giftToAdd = CreateRandomGift();
-            var recipient = CreateRandomRecipient();
-            repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(recipient);
-            var controller = new RecipientsController(repositoryStub.Object);
-
-            //Act
-            var result = await controller.AddGiftToRecipientAsync(giftToAdd.Id, recipient.Id);
-
-            //Assert
-            result.Should().BeOfType<NoContentResult>();
-        }
-
-        [Fact]
-        public async Task RemoveGiftFromRecipientAsync_WithGiftIdToDelete_ReturnsNoContent()
-        {
-            //Arrange
-            var giftToAdd = CreateRandomGift();
-            var recipient = CreateRandomRecipient();
-            repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(recipient);
-            var controller = new RecipientsController(repositoryStub.Object);
-
-            //Act
-            var result = await controller.RemoveGiftFromRecipientAsync(giftToAdd.Id, recipient.Id);
-
-            //Assert
-            result.Should().BeOfType<NoContentResult>();
-        }
-
         private Recipient CreateRandomRecipient()
         {
             return new()
@@ -242,11 +208,6 @@ namespace Prezentex.UnitTests.ControllerTests
                 BirthDay = DateTimeOffset.UtcNow.Date,
                 NameDay = DateTimeOffset.UtcNow.Date,
                 Note = Guid.NewGuid().ToString(),
-                Gifts = new List<Gift>() 
-                {
-                    CreateRandomGift(),
-                    CreateRandomGift()
-                }
             };
         }
 
