@@ -13,7 +13,8 @@ namespace Prezentex.Api
                 gift.Name, 
                 gift.Description, 
                 gift.Price, 
-                gift.ProductUrl);
+                gift.ProductUrl,
+                gift.Recipients.Select(recipient => recipient.AsDto()));
         }
         public static RecipientDto AsDto(this Recipient recipient)
         {
@@ -23,8 +24,7 @@ namespace Prezentex.Api
                 recipient.Name,
                 recipient.Note,
                 recipient.BirthDay,
-                recipient.NameDay,
-                recipient.Gifts);
+                recipient.NameDay);
         }
         public static UserDto AsDto(this User user)
         {

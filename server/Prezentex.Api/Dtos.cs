@@ -9,7 +9,8 @@ namespace Prezentex.Api.Dtos
         string Name,
         string Description,
         decimal Price,
-        string ProductUrl);
+        string ProductUrl,
+        IEnumerable<RecipientDto> Recipients);
     public record CreateGiftDto(
         [Required] string Name,
         [StringLength(500)] string Description,
@@ -20,6 +21,10 @@ namespace Prezentex.Api.Dtos
         [StringLength(500)] string Description,
         decimal Price,
         string ProductUrl);
+    public record AddRecipientToGiftDto(
+        [Required] Guid RecipientId);
+    public record RemoveRecipientFromGiftDto(
+        [Required] Guid RecipientId);
 
     public record RecipientDto(
         Guid Id,
@@ -27,8 +32,7 @@ namespace Prezentex.Api.Dtos
         string Name,
         string Note,
         DateTimeOffset BirthDay,
-        DateTimeOffset NameDay,
-        IEnumerable<Gift> Gifts);
+        DateTimeOffset NameDay);
     public record CreateRecipientDto(
         [Required] string Name,
         string Note,
