@@ -64,7 +64,7 @@ namespace Prezentex.Api.Controllers
 
         [SwaggerOperation(Summary = "Update user")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<UserDto>> UpdateRecipientAsync(Guid id, UpdateUserDto userDto)
+        public async Task<ActionResult<UserDto>> UpdateUserAsync(Guid id, UpdateUserDto userDto)
         {
             var existingUser = await usersRepository.GetUserAsync(id);
 
@@ -155,9 +155,9 @@ namespace Prezentex.Api.Controllers
         {
             var user = await usersRepository.GetUserAsync(userId);
             var recipientId = removeRecipientFromUserDto.RecipientId;
-            var gift = await giftsRepository.GetGiftAsync(recipientId);
+            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
 
-            if (user == null || gift == null || !user.Recipients.Any(recipient => recipient.Id == recipientId))
+            if (user == null || recipient == null || !user.Recipients.Any(recipient => recipient.Id == recipientId))
                 return NotFound();
 
             await usersRepository.RemoveRecipientFromUserAsync(userId, recipientId);
