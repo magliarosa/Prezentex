@@ -6,15 +6,12 @@ using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories.Recipients;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace Prezentex.UnitTests.ControllerTests
 {
-    public class RecipientsControllerTests
+    public class RecipientsControllerTests : TestBase
     {
         //naming convention: UnitOfWork_StateUnderTest_ExpectedBehavior
 
@@ -38,7 +35,7 @@ namespace Prezentex.UnitTests.ControllerTests
         }
 
         [Fact]
-        public async Task GetRecipientAsync_WithExistingRecipient_ReturnsExpectedGift()
+        public async Task GetRecipientAsync_WithExistingRecipient_ReturnsExpectedRecipient()
         {
             //Arrange
             var expectedRecipient = CreateRandomRecipient();
@@ -195,32 +192,6 @@ namespace Prezentex.UnitTests.ControllerTests
 
             //Assert
             result.Should().BeOfType<NotFoundResult>();
-        }
-
-        private Recipient CreateRandomRecipient()
-        {
-            return new()
-            {
-                Id = Guid.NewGuid(),
-                Name = Guid.NewGuid().ToString(),
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                BirthDay = DateTimeOffset.UtcNow.Date,
-                NameDay = DateTimeOffset.UtcNow.Date,
-                Note = Guid.NewGuid().ToString(),
-            };
-        }
-
-        private Gift CreateRandomGift()
-        {
-            return new()
-            {
-                Id = Guid.NewGuid(),
-                Name = Guid.NewGuid().ToString(),
-                Price = rand.Next(1000),
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow
-            };
         }
     }
 }

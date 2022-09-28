@@ -12,7 +12,7 @@ using Prezentex.Api.Repositories.Recipients;
 
 namespace Prezentex.UnitTests.ControllerTests
 {
-    public class GiftsControllerTests
+    public class GiftsControllerTests : TestBase
     {
         //naming convention: UnitOfWork_StateUnderTest_ExpectedBehavior
 
@@ -195,16 +195,145 @@ namespace Prezentex.UnitTests.ControllerTests
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        private Gift CreateRandomGift()
+        [Fact]
+        public async Task AddRecipientToGiftAsync_WithExistingGiftAndRecipient_ReturnsNoContent()
         {
-            return new()
-            {
-                Id = Guid.NewGuid(),
-                Name = Guid.NewGuid().ToString(),
-                Price = rand.Next(1000),
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow
-            };
+            //Arrange
+            var existingGift = CreateRandomGift();
+            var giftId = existingGift.Id;
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingGift);
+            var existingRecipient = CreateRandomRecipient();
+            var recipientId = existingRecipient.Id;
+            recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingRecipient);
+            var controller = new GiftsController(
+                giftsRepositoryStub.Object,
+                recipientsRepositoryStub.Object);
+            var addRecipientDto = new AddRecipientToGiftDto(recipientId);
+
+            //Act
+            var result = await controller.AddRecipientToGiftAsync(giftId, addRecipientDto);
+
+            //Assert
+            result.Should().BeOfType<NoContentResult>();
+        }
+        
+        [Fact]
+        public async Task AddRecipientToGiftAsync_WithUnexistingRecipient_ReturnsNotFound()
+        {
+            //Arrange
+            var existingGift = CreateRandomGift();
+            var giftId = existingGift.Id;
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingGift);
+            var recipientId = Guid.NewGuid();
+            recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((Recipient)null);
+            var controller = new GiftsController(
+                giftsRepositoryStub.Object,
+                recipientsRepositoryStub.Object);
+            var addRecipientDto = new AddRecipientToGiftDto(recipientId);
+
+            //Act
+            var result = await controller.AddRecipientToGiftAsync(giftId, addRecipientDto);
+
+            //Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task AddRecipientToGiftAsync_WithUnexistingGift_ReturnsNotFound()
+        {
+            //Arrange
+            var giftId = Guid.NewGuid();
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((Gift)null);
+            var existingRecipient = CreateRandomRecipient();
+            var recipientId = existingRecipient.Id;
+            recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingRecipient);
+            var controller = new GiftsController(
+                giftsRepositoryStub.Object,
+                recipientsRepositoryStub.Object);
+            var addRecipientDto = new AddRecipientToGiftDto(recipientId);
+
+            //Act
+            var result = await controller.AddRecipientToGiftAsync(giftId, addRecipientDto);
+
+            //Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task RemoveRecipientFromGiftAsync_WithUnexistingGiftAndRecipient_ReturnsNotFound()
+        {
+            //Arrange
+            var existingGift = CreateRandomGift();
+            var giftId = existingGift.Id;
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingGift);
+            var recipientId = Guid.NewGuid();
+            recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((Recipient)null);
+            var controller = new GiftsController(
+                giftsRepositoryStub.Object,
+                recipientsRepositoryStub.Object);
+            var removeRecipientDto = new RemoveRecipientFromGiftDto(recipientId);
+
+            //Act
+            var result = await controller.RemoveRecipientFromGiftAsync(giftId, removeRecipientDto);
+
+            //Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
+
+        [Fact]
+        public async Task RemoveRecipientFromGiftAsync_WithExistingGiftAndRecipient_ReturnsNoContent()
+        {
+            //Arrange
+            var existingGift = CreateRandomGift();
+            var giftId = existingGift.Id;
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingGift);
+            var existingRecipient = CreateRandomRecipient();
+            var recipientId = existingRecipient.Id;
+            recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingRecipient);
+            existingGift.Recipients.Add(existingRecipient);
+            var controller = new GiftsController(
+                giftsRepositoryStub.Object,
+                recipientsRepositoryStub.Object);
+            var removeRecipientDto = new RemoveRecipientFromGiftDto(recipientId);
+
+            //Act
+            var result = await controller.RemoveRecipientFromGiftAsync(giftId, removeRecipientDto);
+
+            //Assert
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        [Fact]
+        public async Task RemoveRecipientFromGiftAsync_WithUnexistingGift_ReturnsNotFound()
+        {
+            //Arrange
+            var giftId = Guid.NewGuid();
+            giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((Gift)null);
+            var existingRecipient = CreateRandomRecipient();
+            var recipientId = existingRecipient.Id;
+            recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(existingRecipient);
+            var controller = new GiftsController(
+                giftsRepositoryStub.Object,
+                recipientsRepositoryStub.Object);
+            var removeRecipientDto = new RemoveRecipientFromGiftDto(recipientId);
+
+            //Act
+            var result = await controller.RemoveRecipientFromGiftAsync(giftId, removeRecipientDto);
+
+            //Assert
+            result.Should().BeOfType<NotFoundResult>();
         }
     }
 }
