@@ -79,6 +79,7 @@ namespace Prezentex.Api.Controllers
                 CreatedDate = existingUser.CreatedDate,
                 Gifts = existingUser.Gifts,
                 Recipients = existingUser.Recipients,
+                Email = existingUser.Email
             };
 
             await usersRepository.UpdateUserAsync(updatedUser);

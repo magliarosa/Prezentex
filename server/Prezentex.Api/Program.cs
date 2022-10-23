@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Prezentex.Api.Options;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Gifts;
 using Prezentex.Api.Repositories.Recipients;
 using Prezentex.Api.Repositories.Users;
+using Prezentex.Api.Services;
 using Prezentex.Api.Settings;
 using System.Net.Mime;
 using System.Text.Json;
@@ -37,6 +39,12 @@ builder.Services.AddDbContext<EntitiesDbContext>(
 builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
 builder.Services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
 builder.Services.AddScoped<IUsersRepository, PostgresUsersRepository>();
+
+var facebookAuthSettings = new FacebookAuthSettings();
+builder.Configuration.Bind(nameof(FacebookAuthSettings), facebookAuthSettings);
+builder.Services.AddSingleton(facebookAuthSettings);
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IFacebookAuthService, FacebookAuthService>();
 
 var app = builder.Build();
 
