@@ -118,6 +118,7 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var userToCreate = new CreateUserDto(
+                Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString());
             var controller = new UsersController(
                 usersRepositoryStub.Object,
@@ -144,6 +145,7 @@ namespace Prezentex.UnitTests.ControllerTests
             //Arrange
             var existingUser = CreateRandomUser();
             var userToUpdate = new UpdateUserDto(
+                Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString());
 
             var recipientId = existingUser.Id;
@@ -167,6 +169,7 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var userToUpdate = new UpdateUserDto(
+                Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString());
             var userId = Guid.NewGuid();
             usersRepositoryStub.Setup(repo => repo.GetUserAsync(It.IsAny<Guid>()))

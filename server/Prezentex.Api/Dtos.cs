@@ -65,4 +65,7 @@ namespace Prezentex.Api.Dtos
         [Required] Guid RecipientId);
     public record RemoveRecipientFromUserDto(
         [Required] Guid RecipientId);
+
+    public record UserFacebookAuthRequestDto(
+        [Required] string AccessToken);
 }

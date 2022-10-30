@@ -33,7 +33,8 @@ namespace Prezentex.Api
                 user.CreatedDate,
                 user.Username,
                 user.Gifts,
-                user.Recipients);
+                user.Recipients,
+                user.Email);
         }
     }
 }

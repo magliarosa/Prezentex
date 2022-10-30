@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories;
@@ -20,6 +22,7 @@ namespace Prezentex.Api.Controllers
             this.recipientsRepository = recipientsRepository;
         }
 
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [SwaggerOperation(Summary = "Get all gifts")]
         [HttpGet]
         public async Task<IEnumerable<GiftDto>> GetGiftsAsync()
