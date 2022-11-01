@@ -1,11 +1,18 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Prezentex.Api.Options;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Gifts;
 using Prezentex.Api.Repositories.Recipients;
 using Prezentex.Api.Repositories.Users;
+using Prezentex.Api.Services;
+using Prezentex.Api.Services.Identity;
 using Prezentex.Api.Settings;
 using System.Net.Mime;
+using System.Text;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +28,32 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.EnableAnnotations();
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the bearer scheme",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    var security = new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new string[]{ }
+        }
+    };
+    c.AddSecurityRequirement(security);
 });
 
 builder.Services.AddHealthChecks()
@@ -38,6 +71,38 @@ builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
 builder.Services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
 builder.Services.AddScoped<IUsersRepository, PostgresUsersRepository>();
 
+builder.Services.AddScoped<IIdentityService, IdentityService>();
+
+var facebookAuthSettings = new FacebookAuthSettings();
+builder.Configuration.Bind(nameof(FacebookAuthSettings), facebookAuthSettings);
+builder.Services.AddSingleton(facebookAuthSettings);
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IFacebookAuthService, FacebookAuthService>();
+
+var jwtSettings = new JwtSettings();
+builder.Configuration.Bind(nameof(JwtSettings), jwtSettings);
+builder.Services.AddSingleton(jwtSettings);
+
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(x =>
+    {
+        x.SaveToken = true;
+        x.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            RequireExpirationTime = false,
+            ValidateLifetime = true
+        };
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -52,6 +117,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>

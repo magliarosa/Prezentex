@@ -46,6 +46,12 @@ namespace Prezentex.Api.Repositories.Users
             return user;
         }
 
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            var user = await context.Users.Include(user => user.Gifts).Include(user => user.Recipients).SingleOrDefaultAsync(x => x.Email == email);
+            return user;
+        }
+
         public async Task<IEnumerable<User>> GetUsersAsync()
         {
             var users = await context.Users.ToListAsync();

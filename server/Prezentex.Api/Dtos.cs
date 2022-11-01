@@ -49,11 +49,14 @@ namespace Prezentex.Api.Dtos
         DateTimeOffset CreatedDate,
         string Username,
         ICollection<Gift> Gifts,
-        ICollection<Recipient> Recipients);
+        ICollection<Recipient> Recipients,
+        string Email);
     public record CreateUserDto(
-        [Required] string Username);
+        [Required] string Username,
+        string Email);
     public record UpdateUserDto(
-        [Required] string Username);
+        [Required] string Username,
+        string Email);
     public record AddGiftToUserDto(
         [Required] Guid GiftId);
     public record RemoveGiftFromUserDto(
@@ -62,4 +65,7 @@ namespace Prezentex.Api.Dtos
         [Required] Guid RecipientId);
     public record RemoveRecipientFromUserDto(
         [Required] Guid RecipientId);
+
+    public record UserFacebookAuthRequestDto(
+        [Required] string AccessToken);
 }

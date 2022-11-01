@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories;
@@ -8,6 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Prezentex.Api.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     public class GiftsController : ControllerBase
     {
@@ -58,7 +61,7 @@ namespace Prezentex.Api.Controllers
 
             await giftsRepository.CreateGiftAsync(newGift);
 
-            return CreatedAtAction(nameof(GetGiftAsync), new {Id = newGift.Id}, newGift.AsDto());
+            return CreatedAtAction(nameof(GetGiftAsync), new { Id = newGift.Id }, newGift.AsDto());
         }
 
         [SwaggerOperation(Summary = "Update gift")]
