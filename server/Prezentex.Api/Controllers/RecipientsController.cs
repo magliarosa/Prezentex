@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories.Recipients;
@@ -7,6 +9,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Prezentex.Api.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     public class RecipientsController : ControllerBase
     {

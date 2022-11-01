@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
@@ -10,6 +12,7 @@ using System.Net;
 namespace Prezentex.Api.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     public class UsersController : ControllerBase
     {

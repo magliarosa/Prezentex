@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Prezentex.Api.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     public class GiftsController : ControllerBase
     {
@@ -22,7 +23,6 @@ namespace Prezentex.Api.Controllers
             this.recipientsRepository = recipientsRepository;
         }
 
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [SwaggerOperation(Summary = "Get all gifts")]
         [HttpGet]
         public async Task<IEnumerable<GiftDto>> GetGiftsAsync()
@@ -61,7 +61,7 @@ namespace Prezentex.Api.Controllers
 
             await giftsRepository.CreateGiftAsync(newGift);
 
-            return CreatedAtAction(nameof(GetGiftAsync), new {Id = newGift.Id}, newGift.AsDto());
+            return CreatedAtAction(nameof(GetGiftAsync), new { Id = newGift.Id }, newGift.AsDto());
         }
 
         [SwaggerOperation(Summary = "Update gift")]

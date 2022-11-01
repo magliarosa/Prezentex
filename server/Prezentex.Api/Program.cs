@@ -28,10 +28,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.EnableAnnotations();
-    //var security = new Dictionary<string, IEnumerable<string>>
-    //{
-    //    {"Bearer", new string[0]}
-    //};
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the bearer scheme",
