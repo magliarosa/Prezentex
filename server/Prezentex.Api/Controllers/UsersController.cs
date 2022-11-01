@@ -58,6 +58,7 @@ namespace Prezentex.Api.Controllers
                 UpdatedDate = DateTimeOffset.UtcNow,
                 Id = Guid.NewGuid(),
                 Username = userDto.Username,
+                Email = userDto.Email
             };
 
             await usersRepository.CreateUserAsync(newUser);
@@ -82,7 +83,7 @@ namespace Prezentex.Api.Controllers
                 CreatedDate = existingUser.CreatedDate,
                 Gifts = existingUser.Gifts,
                 Recipients = existingUser.Recipients,
-                Email = existingUser.Email
+                Email = userDto.Email
             };
 
             await usersRepository.UpdateUserAsync(updatedUser);
