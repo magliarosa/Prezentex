@@ -36,5 +36,12 @@ namespace Prezentex.Api
                 user.Recipients,
                 user.Email);
         }
+
+        public static Guid GetUserId(this HttpContext httpContext)
+        {
+            var plainId = httpContext.User.Claims.Single(x => x.Type == "id").Value;
+            var id = Guid.Parse(plainId);
+            return id;
+        }
     }
 }

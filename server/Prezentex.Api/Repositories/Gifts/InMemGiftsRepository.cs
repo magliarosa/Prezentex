@@ -55,5 +55,10 @@ namespace Prezentex.Api.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<bool> UserOwnsGiftAsync(Guid giftId, Guid userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -42,5 +42,16 @@ namespace Prezentex.Api.Repositories.Recipients
             context.Entry(existingRecipient).CurrentValues.SetValues(recipient);
             await context.SaveChangesAsync();
         }
+
+        public async Task<bool> UserOwnsRecipientAsync(Guid recipientId, Guid userId)
+        {
+            var recipient = await context.Recipients.AsNoTracking().SingleOrDefaultAsync(x => x.Id == recipientId);
+
+            if (recipient == null)
+                return false;
+
+            return recipient.UserId == userId;
+
+        }
     }
 }

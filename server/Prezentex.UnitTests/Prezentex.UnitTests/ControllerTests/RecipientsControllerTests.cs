@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Prezentex.Api.Controllers;
@@ -17,6 +18,7 @@ namespace Prezentex.UnitTests.ControllerTests
 
         private readonly Mock<IRecipientsRepository> repositoryStub = new();
         private readonly Random rand = new Random();
+        private readonly Mock<HttpContext> httpContextStub = new();
 
         [Fact]
         public async Task GetRecipientAsync_WithUnexistingRecipient_ReturnsNotFound()
@@ -24,6 +26,8 @@ namespace Prezentex.UnitTests.ControllerTests
             //Arrange
             repositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Recipient)null);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(Guid.NewGuid()));
 
             var controller = new RecipientsController(repositoryStub.Object);
 
@@ -41,7 +45,14 @@ namespace Prezentex.UnitTests.ControllerTests
             var expectedRecipient = CreateRandomRecipient();
             repositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(expectedRecipient);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(expectedRecipient.UserId));
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var controller = new RecipientsController(repositoryStub.Object);
+            controller.ControllerContext = controllerContext;
 
             //Act
             var result = await controller.GetRecipientAsync(Guid.NewGuid());
@@ -101,6 +112,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 DateTimeOffset.UtcNow.Date,
                 DateTimeOffset.UtcNow.Date);
             var controller = new RecipientsController(repositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(Guid.NewGuid()));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.CreateRecipientAsync(recipientToCreate);
@@ -131,6 +148,12 @@ namespace Prezentex.UnitTests.ControllerTests
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
             var controller = new RecipientsController(repositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingRecipient.UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.UpdateRecipientAsync(recipientId, recipientToUpdate);
@@ -153,7 +176,7 @@ namespace Prezentex.UnitTests.ControllerTests
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Recipient)null);
             var controller = new RecipientsController(repositoryStub.Object);
-
+   
             //Act
             var result = await controller.UpdateRecipientAsync(recipientId, recipientToUpdate);
 
@@ -170,6 +193,12 @@ namespace Prezentex.UnitTests.ControllerTests
             repositoryStub.Setup(options => options.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
             var controller = new RecipientsController(repositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingRecipient.UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.DeleteRecipientAsync(recipientId);

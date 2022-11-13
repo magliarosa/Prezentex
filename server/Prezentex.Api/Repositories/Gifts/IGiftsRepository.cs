@@ -11,5 +11,6 @@ namespace Prezentex.Api.Repositories
         Task DeleteGiftAsync(Guid id);
         Task AddRecipientToGiftAsync(Guid giftId, Guid recipientId);
         Task RemoveRecipientFromGiftAsync(Guid giftId, Guid recipientId);
+        Task<bool> UserOwnsGiftAsync(Guid giftId, Guid userId);
     }
 }

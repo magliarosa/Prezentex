@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Prezentex.Api.Repositories;
+using Microsoft.AspNetCore.Http;
 
 namespace Prezentex.UnitTests.ControllerTests
 {
@@ -24,8 +25,7 @@ namespace Prezentex.UnitTests.ControllerTests
         private readonly Mock<IRecipientsRepository> recipientsRepositoryStub = new();
         private readonly Mock<IUsersRepository> usersRepositoryStub = new();
         private readonly Mock<IGiftsRepository> giftsRepositoryStub = new();
-        private readonly Random rand = new Random();
-
+        private readonly Mock<HttpContext> httpContextStub = new();
 
         [Fact]
         public async Task GetUserAsync_WithUnexistingUser_ReturnsNotFound()
@@ -57,6 +57,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(expectedUser.Id));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.GetUserAsync(Guid.NewGuid());
@@ -155,6 +161,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingUser.Id));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.UpdateUserAsync(recipientId, userToUpdate);
@@ -198,6 +210,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+               .Returns(GenerateClaimsPrincipal(existingUser.Id));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.DeleteUserAsync(userId);
@@ -234,6 +252,7 @@ namespace Prezentex.UnitTests.ControllerTests
             usersRepositoryStub.Setup(repo => repo.GetUserAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingUser);
             var existingGift = CreateRandomGift();
+            existingGift.UserId = userId;
             var giftId = existingGift.Id;
             giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
@@ -241,6 +260,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+               .Returns(GenerateClaimsPrincipal(existingUser.Id));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var addGiftDto = new AddGiftToUserDto(giftId);
 
             //Act
@@ -309,6 +334,7 @@ namespace Prezentex.UnitTests.ControllerTests
                 .ReturnsAsync(existingUser);
             var existingGift = CreateRandomGift();
             var giftId = existingGift.Id;
+            existingGift.UserId = userId;
             giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
             existingUser.Gifts.Add(existingGift);
@@ -316,6 +342,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+               .Returns(GenerateClaimsPrincipal(userId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var removeGiftDto = new RemoveGiftFromUserDto(giftId);
 
             //Act
@@ -383,12 +415,19 @@ namespace Prezentex.UnitTests.ControllerTests
                 .ReturnsAsync(existingUser);
             var existingRecipient = CreateRandomRecipient();
             var recipientId = existingRecipient.Id;
+            existingRecipient.UserId = userId;
             recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
             var controller = new UsersController(
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+               .Returns(GenerateClaimsPrincipal(existingUser.Id));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var addRecipientDto = new AddRecipientToUserDto(recipientId);
 
             //Act
@@ -455,6 +494,7 @@ namespace Prezentex.UnitTests.ControllerTests
                 .ReturnsAsync(existingUser);
             var existingRecipient = CreateRandomRecipient();
             var recipientId = existingRecipient.Id;
+            existingRecipient.UserId = userId;
             recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
             existingUser.Recipients.Add(existingRecipient);
@@ -462,6 +502,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 usersRepositoryStub.Object,
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+               .Returns(GenerateClaimsPrincipal(existingUser.Id));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var removeRecipientDto = new RemoveRecipientFromUserDto(recipientId);
 
             //Act
