@@ -45,6 +45,10 @@ namespace Prezentex.Api.Controllers
             if (user == null)
                 return NotFound();
 
+            var isCorrectUser = user.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
             return user.AsDto();
         }
 
@@ -75,6 +79,10 @@ namespace Prezentex.Api.Controllers
             if (existingUser == null)
                 return NotFound();
 
+            var isCorrectUser = existingUser.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
             var updatedUser = new User
             {
                 Id = existingUser.Id,
@@ -99,6 +107,10 @@ namespace Prezentex.Api.Controllers
             if (existingUser == null)
                 return NotFound();
 
+            var isCorrectUser = existingUser.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
             await usersRepository.DeleteUserAsync(id);
 
             return NoContent();
@@ -114,7 +126,15 @@ namespace Prezentex.Api.Controllers
             
             if (user == null || gift == null)
                 return NotFound();
-            
+
+            var isCorrectUser = user.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
+            var userOwnsGift = gift.UserId == user.Id;
+            if (!userOwnsGift)
+                return BadRequest(new { error = "User does not own this gift" });
+
             await usersRepository.AddGiftToUserAsync(userId, giftId);
 
             return NoContent();
@@ -131,7 +151,15 @@ namespace Prezentex.Api.Controllers
 
             if (user == null || gift == null || !user.Gifts.Any(gift => gift.Id == giftId))
                 return NotFound();
-            
+
+            var isCorrectUser = user.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
+            var userOwnsGift = gift.UserId == user.Id;
+            if (!userOwnsGift)
+                return BadRequest(new { error = "User does not own this gift" });
+
             await usersRepository.RemoveGiftFromUserAsync(userId, giftId);
 
             return NoContent();
@@ -147,6 +175,14 @@ namespace Prezentex.Api.Controllers
 
             if (user == null || recipient == null)
                 return NotFound();
+
+            var isCorrectUser = user.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
+            var userOwnsRecipient = recipient.UserId == user.Id;
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "User does not own this recipient" });
 
             await usersRepository.AddRecipientToUserAsync(userId, recipientId);
 
@@ -164,6 +200,14 @@ namespace Prezentex.Api.Controllers
 
             if (user == null || recipient == null || !user.Recipients.Any(recipient => recipient.Id == recipientId))
                 return NotFound();
+            
+            var isCorrectUser = user.Id == HttpContext.GetUserId();
+            if (!isCorrectUser)
+                return Forbid();
+
+            var userOwnsRecipient = recipient.UserId == user.Id;
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "User does not own this recipient" });
 
             await usersRepository.RemoveRecipientFromUserAsync(userId, recipientId);
 

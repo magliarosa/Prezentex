@@ -38,6 +38,10 @@ namespace Prezentex.Api.Controllers
             if (recipient == null)
                 return NotFound();
 
+            var userOwnsRecipient = recipient.UserId == HttpContext.GetUserId();
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "You do not own this recipient" });
+
             return recipient.AsDto();
         }
 
@@ -53,7 +57,8 @@ namespace Prezentex.Api.Controllers
                 Name = recipientDto.Name,
                 BirthDay = recipientDto.BirthDay,
                 NameDay = recipientDto.NameDay,
-                Note = recipientDto.Note
+                Note = recipientDto.Note,
+                UserId = HttpContext.GetUserId()
             };
 
             await recipientsRepository.CreateRecipientAsync(newRecipient);
@@ -69,6 +74,10 @@ namespace Prezentex.Api.Controllers
 
             if (existingRecipient == null)
                 return NotFound();
+
+            var userOwnsRecipient = existingRecipient.UserId == HttpContext.GetUserId();
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "You do not own this recipient" });
 
             var updatedRecipient = new Recipient
             {
@@ -93,6 +102,10 @@ namespace Prezentex.Api.Controllers
             var existingRecipient = await recipientsRepository.GetRecipientAsync(id);
             if (existingRecipient == null)
                 return NotFound();
+
+            var userOwnsRecipient = existingRecipient.UserId == HttpContext.GetUserId();
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "You do not own this recipient" });
 
             await recipientsRepository.DeleteRecipientAsync(id);
 

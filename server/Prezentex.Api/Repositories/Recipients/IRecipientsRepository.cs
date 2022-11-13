@@ -9,5 +9,6 @@ namespace Prezentex.Api.Repositories.Recipients
         Task CreateRecipientAsync(Recipient recipient);
         Task UpdateRecipientAsync(Recipient recipient);
         Task DeleteRecipientAsync(Guid id);
+        Task<bool> UserOwnsRecipientAsync(Guid recipientId, Guid userId);
     }
 }

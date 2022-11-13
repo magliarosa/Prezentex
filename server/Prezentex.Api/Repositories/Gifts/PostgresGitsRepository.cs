@@ -11,7 +11,6 @@ namespace Prezentex.Api.Repositories.Gifts
             this.context = dbContext;
         }
 
-
         public async Task CreateGiftAsync(Gift gift)
         {
             await context.AddAsync(gift);
@@ -59,6 +58,16 @@ namespace Prezentex.Api.Repositories.Gifts
             var recipient = await context.Recipients.Where(x => x.Id == recipientId).SingleOrDefaultAsync();
             gift.Recipients.Remove(recipient);
             await context.SaveChangesAsync();
+        }
+
+        public async Task<bool> UserOwnsGiftAsync(Guid giftId, Guid userId)
+        {
+            var gift = await context.Gifts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == giftId);
+
+            if (gift == null)
+                return false;
+
+            return gift.UserId == userId;
         }
     }
 }

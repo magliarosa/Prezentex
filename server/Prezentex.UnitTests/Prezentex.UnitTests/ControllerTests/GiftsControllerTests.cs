@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using FluentAssertions;
 using Prezentex.Api.Repositories.Recipients;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Web;
 
 namespace Prezentex.UnitTests.ControllerTests
 {
@@ -19,6 +24,7 @@ namespace Prezentex.UnitTests.ControllerTests
         private readonly Mock<IGiftsRepository> giftsRepositoryStub = new();
         private readonly Mock<IRecipientsRepository> recipientsRepositoryStub = new();
         private readonly Random rand = new Random();
+        private readonly Mock<HttpContext> httpContextStub = new();
 
         [Fact]
         public async Task GetGiftAsync_WithUnexistingGift_ReturnsNotFound()
@@ -26,9 +32,14 @@ namespace Prezentex.UnitTests.ControllerTests
             //Arrange
             giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((Gift)null);
-            
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(Guid.NewGuid()));
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
-
+            controller.ControllerContext = controllerContext;
             //Act
             var result = await controller.GetGiftAsync(Guid.NewGuid());
 
@@ -41,10 +52,16 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var expectedGift = CreateRandomGift();
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(expectedGift.UserId));
             giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(expectedGift);
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
-
+            controller.ControllerContext = controllerContext;
             //Act
             var result = await controller.GetGiftAsync(Guid.NewGuid());
 
@@ -62,7 +79,7 @@ namespace Prezentex.UnitTests.ControllerTests
             giftsRepositoryStub.Setup(repo => repo.GetGiftsAsync())
                 .ReturnsAsync(new Gift[0]);
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
-
+            
             //Act
             var result = await controller.GetGiftsAsync();
 
@@ -82,6 +99,12 @@ namespace Prezentex.UnitTests.ControllerTests
             giftsRepositoryStub.Setup(repo => repo.GetGiftsAsync())
                 .ReturnsAsync(expectedArray);
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(expectedArray.First().UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.GetGiftsAsync();
@@ -98,11 +121,17 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var giftToCreate = new CreateGiftDto(
-                Guid.NewGuid().ToString(), 
-                Guid.NewGuid().ToString(), 
-                rand.Next(2000), 
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
+                rand.Next(2000),
                 Guid.NewGuid().ToString());
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(Guid.NewGuid()));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.CreateGiftAsync(giftToCreate);
@@ -115,7 +144,7 @@ namespace Prezentex.UnitTests.ControllerTests
                 .ComparingByMembers<GiftDto>()
                 .ExcludingMissingMembers());
             createdGift.Id.Should().NotBeEmpty();
-            createdGift.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0,0,1));
+            createdGift.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0, 0, 1));
         }
 
         [Fact]
@@ -125,13 +154,19 @@ namespace Prezentex.UnitTests.ControllerTests
             var existingGift = CreateRandomGift();
             var giftToUpdate = new UpdateGiftDto(
                 Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(), 
+                Guid.NewGuid().ToString(),
                 rand.Next(1000),
                 Guid.NewGuid().ToString());
             var giftId = existingGift.Id;
             giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingGift.UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.UpdateGiftAsync(giftId, giftToUpdate);
@@ -146,9 +181,9 @@ namespace Prezentex.UnitTests.ControllerTests
         {
             //Arrange
             var giftToUpdate = new UpdateGiftDto(
-                Guid.NewGuid().ToString(), 
-                Guid.NewGuid().ToString(), 
-                rand.Next(1000), 
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
+                rand.Next(1000),
                 Guid.NewGuid().ToString());
             var giftId = Guid.NewGuid();
             giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
@@ -171,6 +206,12 @@ namespace Prezentex.UnitTests.ControllerTests
             giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
             var controller = new GiftsController(giftsRepositoryStub.Object, recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingGift.UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.DeleteGiftAsync(giftId);
@@ -204,6 +245,7 @@ namespace Prezentex.UnitTests.ControllerTests
             giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
             var existingRecipient = CreateRandomRecipient();
+            existingRecipient.UserId = existingGift.UserId;
             var recipientId = existingRecipient.Id;
             recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
@@ -211,6 +253,12 @@ namespace Prezentex.UnitTests.ControllerTests
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
             var addRecipientDto = new AddRecipientToGiftDto(recipientId);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingGift.UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
 
             //Act
             var result = await controller.AddRecipientToGiftAsync(giftId, addRecipientDto);
@@ -218,7 +266,7 @@ namespace Prezentex.UnitTests.ControllerTests
             //Assert
             result.Should().BeOfType<NoContentResult>();
         }
-        
+
         [Fact]
         public async Task AddRecipientToGiftAsync_WithUnexistingRecipient_ReturnsNotFound()
         {
@@ -233,6 +281,8 @@ namespace Prezentex.UnitTests.ControllerTests
             var controller = new GiftsController(
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+
+
             var addRecipientDto = new AddRecipientToGiftDto(recipientId);
 
             //Act
@@ -297,6 +347,7 @@ namespace Prezentex.UnitTests.ControllerTests
             giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingGift);
             var existingRecipient = CreateRandomRecipient();
+            existingRecipient.UserId = existingGift.UserId;
             var recipientId = existingRecipient.Id;
             recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(existingRecipient);
@@ -304,6 +355,12 @@ namespace Prezentex.UnitTests.ControllerTests
             var controller = new GiftsController(
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+            httpContextStub.Setup(context => context.User)
+                .Returns(GenerateClaimsPrincipal(existingGift.UserId));
+            controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContextStub.Object
+            };
             var removeRecipientDto = new RemoveRecipientFromGiftDto(recipientId);
 
             //Act
@@ -327,6 +384,7 @@ namespace Prezentex.UnitTests.ControllerTests
             var controller = new GiftsController(
                 giftsRepositoryStub.Object,
                 recipientsRepositoryStub.Object);
+
             var removeRecipientDto = new RemoveRecipientFromGiftDto(recipientId);
 
             //Act

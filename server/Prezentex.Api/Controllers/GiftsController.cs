@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories;
@@ -41,6 +42,10 @@ namespace Prezentex.Api.Controllers
             if (gift == null)
                 return NotFound();
 
+            var userOwnsGift = gift.UserId == HttpContext.GetUserId();
+            if (!userOwnsGift)
+                return BadRequest(new { error = "You do not own this gift" });
+
             return gift.AsDto();
         }
 
@@ -56,7 +61,8 @@ namespace Prezentex.Api.Controllers
                 Id = Guid.NewGuid(),
                 Name = giftDto.Name,
                 Price = giftDto.Price,
-                ProductUrl = giftDto.ProductUrl
+                ProductUrl = giftDto.ProductUrl,
+                UserId = HttpContext.GetUserId()
             };
 
             await giftsRepository.CreateGiftAsync(newGift);
@@ -69,9 +75,12 @@ namespace Prezentex.Api.Controllers
         public async Task<ActionResult<GiftDto>> UpdateGiftAsync(Guid id, UpdateGiftDto giftDto)
         {
             var existingGift = await giftsRepository.GetGiftAsync(id);
-
             if (existingGift == null)
                 return NotFound();
+            
+            var userOwnsGift = existingGift.UserId == HttpContext.GetUserId();
+            if (!userOwnsGift)
+                return BadRequest(new { error = "You do not own this gift" });
 
             var updatedGift = new Gift
             {
@@ -81,7 +90,8 @@ namespace Prezentex.Api.Controllers
                 Price = giftDto.Price,
                 ProductUrl = giftDto.ProductUrl,
                 UpdatedDate = DateTimeOffset.UtcNow,
-                Recipients = existingGift.Recipients
+                Recipients = existingGift.Recipients,
+                UserId = existingGift.UserId
             };
 
             await giftsRepository.UpdateGiftAsync(updatedGift);
@@ -96,6 +106,10 @@ namespace Prezentex.Api.Controllers
             var existingGift = await giftsRepository.GetGiftAsync(id);
             if (existingGift == null)
                 return NotFound();
+            
+            var userOwnsGift = existingGift.UserId == HttpContext.GetUserId();
+            if (!userOwnsGift)
+                return BadRequest(new { error = "You do not own this gift" });
 
             await giftsRepository.DeleteGiftAsync(id);
 
@@ -109,9 +123,17 @@ namespace Prezentex.Api.Controllers
             var gift = await giftsRepository.GetGiftAsync(giftId);
             var recipientId = addRecipientToGiftDto.RecipientId;
             var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-
+            
             if (gift == null || recipient == null)
                 return NotFound();
+
+            var userOwnsGift = gift.UserId == HttpContext.GetUserId();
+            if (!userOwnsGift)
+                return BadRequest(new { error = "You do not own this gift" });
+
+            var userOwnsRecipient = recipient.UserId == HttpContext.GetUserId();
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "You do not own this recipient" });
 
             await giftsRepository.AddRecipientToGiftAsync(giftId, recipientId);
 
@@ -129,6 +151,14 @@ namespace Prezentex.Api.Controllers
 
             if (gift == null || recipient == null || !gift.Recipients.Any(recipient => recipient.Id == recipientId))
                 return NotFound();
+
+            var userOwnsGift = gift.UserId == HttpContext.GetUserId();
+            if (!userOwnsGift)
+                return BadRequest(new { error = "You do not own this gift" });
+
+            var userOwnsRecipient = recipient.UserId == HttpContext.GetUserId();
+            if (!userOwnsRecipient)
+                return BadRequest(new { error = "You do not own this recipient" });
 
             await giftsRepository.RemoveRecipientFromGiftAsync(giftId, recipientId);
 
