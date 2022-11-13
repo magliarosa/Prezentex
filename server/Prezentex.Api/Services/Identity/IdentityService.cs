@@ -13,12 +13,14 @@ namespace Prezentex.Api.Services.Identity
         private readonly IFacebookAuthService _facebookAuthService;
         private readonly IUsersRepository _usersRepository;
         private readonly JwtSettings _jwtSettings;
+        private readonly TokenValidationParameters _tokenValidationParameters;
 
-        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings)
+        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters)
         {
             _facebookAuthService = facebookAuthService;
             _usersRepository = usersRepository;
             _jwtSettings = jwtSettings;
+            _tokenValidationParameters = tokenValidationParameters;
         }
 
         public async Task<AuthenticationResult> LoginWithFacebookAsync(string accessToken)
@@ -55,6 +57,30 @@ namespace Prezentex.Api.Services.Identity
             return await GenerateAuthenticationResultForUserAsync(user);
         }
 
+        public async Task<AuthenticationResult> RefreshTokenAsync(string token, string refreshToken)
+        {
+            var validatedToken = GetPrincipalFromToken(token);
+
+            if (validatedToken == null)
+            {
+                return new AuthenticationResult { Errors = new[] { "Invalid token" } };
+            }
+
+            var expiryDateUnix = 
+                long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+            var expiryDateTimeUtc = new DatetTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                .AddSeconds(expiryDateUnix)
+                .Subtract(_jwtSettings.TokenLifetime);
+
+            if(expiryDateTimeUtc > DateTime.UtcNow)
+            {
+                return new AuthenticationResult { Errors = new[] { "This token hasn't expired yet" } };
+            }
+
+            var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+
+        }
+
         private async Task<AuthenticationResult> GenerateAuthenticationResultForUserAsync(User newUser)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -69,7 +95,7 @@ namespace Prezentex.Api.Services.Identity
                     new Claim("id", newUser.Id.ToString())
 
                 }),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.UtcNow.Add(_jwtSettings.TokenLifetime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -80,6 +106,33 @@ namespace Prezentex.Api.Services.Identity
                 Success = true,
                 Token = tokenHandler.WriteToken(token)
             };
+        }
+
+        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, _tokenValidationParameters, out var validatedToken);
+                if(!IsJwtWithValidSecutityAlgorithm(validatedToken))
+                {
+                    return null;
+                };
+                return principal;
+            }
+            catch
+            {
+
+                throw null;
+            }
+        }
+
+        private bool IsJwtWithValidSecutityAlgorithm(SecurityToken validatedToken)
+        {
+            return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
+                jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                    StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
