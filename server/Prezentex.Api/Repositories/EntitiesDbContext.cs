@@ -18,5 +18,6 @@ namespace Prezentex.Api.Repositories
         public DbSet<Gift> Gifts { get; set; }
         public DbSet<Recipient> Recipients { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

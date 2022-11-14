@@ -68,4 +68,8 @@ namespace Prezentex.Api.Dtos
 
     public record UserFacebookAuthRequestDto(
         [Required] string AccessToken);
+
+    public record RefreshTokenRequestDto(
+        string Token,
+        string RefreshToken);
 }
