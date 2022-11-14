@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Options;
 using Prezentex.Api.Repositories;
@@ -14,13 +15,15 @@ namespace Prezentex.Api.Services.Identity
         private readonly IUsersRepository _usersRepository;
         private readonly JwtSettings _jwtSettings;
         private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly EntitiesDbContext _context;
 
-        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters)
+        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters, EntitiesDbContext context = null)
         {
             _facebookAuthService = facebookAuthService;
             _usersRepository = usersRepository;
             _jwtSettings = jwtSettings;
             _tokenValidationParameters = tokenValidationParameters;
+            _context = context;
         }
 
         public async Task<AuthenticationResult> LoginWithFacebookAsync(string accessToken)
@@ -68,9 +71,8 @@ namespace Prezentex.Api.Services.Identity
 
             var expiryDateUnix = 
                 long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
-            var expiryDateTimeUtc = new DatetTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                .AddSeconds(expiryDateUnix)
-                .Subtract(_jwtSettings.TokenLifetime);
+            var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                .AddSeconds(expiryDateUnix);
 
             if(expiryDateTimeUtc > DateTime.UtcNow)
             {
@@ -79,9 +81,42 @@ namespace Prezentex.Api.Services.Identity
 
             var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
 
+            var storedRefreshToken = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == refreshToken);
+
+            if (storedRefreshToken == null)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token does not exists" } };
+            }
+
+            if (DateTime.UtcNow > storedRefreshToken.ExpiryDate)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token has expired" } };
+            }
+
+            if (storedRefreshToken.Invalidated)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token has been invalidated" } };
+            }
+
+            if (storedRefreshToken.Used)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token has been invalidated" } };
+            }
+
+            if (storedRefreshToken.JwtId != jti)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token does not match this JWT" } };
+            }
+
+            storedRefreshToken.Used = true;
+            _context.RefreshTokens.Update(storedRefreshToken);
+            await _context.SaveChangesAsync();
+
+            var user = await _usersRepository.GetUserAsync(Guid.Parse(validatedToken.Claims.Single(x => x.Type == "id").Value));
+            return await GenerateAuthenticationResultForUserAsync(user);
         }
 
-        private async Task<AuthenticationResult> GenerateAuthenticationResultForUserAsync(User newUser)
+        private async Task<AuthenticationResult> GenerateAuthenticationResultForUserAsync(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
@@ -89,10 +124,10 @@ namespace Prezentex.Api.Services.Identity
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, newUser.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, newUser.Email),
-                    new Claim("id", newUser.Id.ToString())
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim("id", user.Id.ToString())
 
                 }),
                 Expires = DateTime.UtcNow.Add(_jwtSettings.TokenLifetime),
@@ -101,10 +136,22 @@ namespace Prezentex.Api.Services.Identity
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
+            var refreshToken = new RefreshToken
+            {
+                JwtId = token.Id,
+                UserId = user.Id,
+                CreationDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddMonths(6)
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.SaveChangesAsync();
+
             return new AuthenticationResult
             {
                 Success = true,
-                Token = tokenHandler.WriteToken(token)
+                Token = tokenHandler.WriteToken(token),
+                RefreshToken = refreshToken.Token
             };
         }
 
@@ -123,7 +170,6 @@ namespace Prezentex.Api.Services.Identity
             }
             catch
             {
-
                 throw null;
             }
         }
