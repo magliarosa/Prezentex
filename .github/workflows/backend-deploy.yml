@@ -54,11 +54,11 @@ jobs:
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
-        working-directory: server
+        working-directory: server/Prezentex.Api
 
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
-        working-directory: server
+        working-directory: server/Prezentex.Api
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
