@@ -17,6 +17,7 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 var postgresSettings = builder.Configuration.GetSection(nameof(PostgresSettings)).Get<PostgresSettings>();
+var cosmosSettings = builder.Configuration.GetSection(nameof(CosmosSettings)).Get<CosmosSettings>();
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
@@ -61,10 +62,14 @@ builder.Services.AddHealthChecks()
     postgresSettings.ConnectionString,
     name: "postgres",
     timeout: TimeSpan.FromSeconds(3),
-    tags: new[] {"ready"});
+    tags: new[] { "ready" });
 
 builder.Services.AddDbContext<EntitiesDbContext>(
     options => options.UseNpgsql(postgresSettings.ConnectionString)
+);
+
+builder.Services.AddDbContext<CosmosDbContext>(
+    options => options.UseCosmos(cosmosSettings.ConnectionString, cosmosSettings.Database)
 );
 
 builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
@@ -84,14 +89,14 @@ builder.Configuration.Bind(nameof(JwtSettings), jwtSettings);
 builder.Services.AddSingleton(jwtSettings);
 
 var tokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        RequireExpirationTime = false,
-        ValidateLifetime = true
-    };
+{
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    RequireExpirationTime = false,
+    ValidateLifetime = true
+};
 builder.Services.AddSingleton(tokenValidationParameters);
 builder.Services.AddAuthentication(x =>
 {
@@ -147,7 +152,7 @@ app.UseEndpoints(endpoints =>
             context.Response.ContentType = MediaTypeNames.Application.Json;
             await context.Response.WriteAsync(result);
         }
-        
+
     });
 
     endpoints.MapHealthChecks("/health/live", new HealthCheckOptions
