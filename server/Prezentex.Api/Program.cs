@@ -1,23 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Prezentex.Api.Options;
-using Prezentex.Api.Repositories;
-using Prezentex.Api.Repositories.Gifts;
-using Prezentex.Api.Repositories.Recipients;
-using Prezentex.Api.Repositories.Users;
 using Prezentex.Api.Services;
 using Prezentex.Api.Services.Identity;
-using Prezentex.Api.Settings;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
-var postgresSettings = builder.Configuration.GetSection(nameof(PostgresSettings)).Get<PostgresSettings>();
-var cosmosSettings = builder.Configuration.GetSection(nameof(CosmosSettings)).Get<CosmosSettings>();
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
@@ -57,58 +49,10 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityRequirement(security);
 });
 
-builder.Services.AddHealthChecks()
-    .AddNpgSql(
-    postgresSettings.ConnectionString,
-    name: "postgres",
-    timeout: TimeSpan.FromSeconds(3),
-    tags: new[] { "ready" });
-
-builder.Services.AddDbContext<EntitiesDbContext>(
-    options => options.UseNpgsql(postgresSettings.ConnectionString)
-);
-
-builder.Services.AddDbContext<CosmosDbContext>(
-    options => options.UseCosmos(cosmosSettings.ConnectionString, cosmosSettings.Database)
-);
-
-builder.Services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
-builder.Services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
-builder.Services.AddScoped<IUsersRepository, PostgresUsersRepository>();
-
-builder.Services.AddScoped<IIdentityService, IdentityService>();
-
-var facebookAuthSettings = new FacebookAuthSettings();
-builder.Configuration.Bind(nameof(FacebookAuthSettings), facebookAuthSettings);
-builder.Services.AddSingleton(facebookAuthSettings);
+builder.Services.AddAuth(builder.Configuration);
+builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<IFacebookAuthService, FacebookAuthService>();
 
-var jwtSettings = new JwtSettings();
-builder.Configuration.Bind(nameof(JwtSettings), jwtSettings);
-builder.Services.AddSingleton(jwtSettings);
-
-var tokenValidationParameters = new TokenValidationParameters
-{
-    ValidateIssuerSigningKey = true,
-    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
-    ValidateIssuer = false,
-    ValidateAudience = false,
-    RequireExpirationTime = false,
-    ValidateLifetime = true
-};
-builder.Services.AddSingleton(tokenValidationParameters);
-builder.Services.AddAuthentication(x =>
-{
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(x =>
-    {
-        x.SaveToken = true;
-        x.TokenValidationParameters = tokenValidationParameters;
-    });
 
 var app = builder.Build();
 
