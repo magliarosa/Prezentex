@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Gifts;
+using Prezentex.Api.Repositories.Notifications;
 using Prezentex.Api.Repositories.Recipients;
 using Prezentex.Api.Repositories.Users;
 using Prezentex.Api.Settings;
@@ -25,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IGiftsRepository, PostgresGitsRepository>();
             services.AddScoped<IRecipientsRepository, PostgresRecipientsRepository>();
             services.AddScoped<IUsersRepository, PostgresUsersRepository>();
-
+            services.AddScoped<INotificationsRepository, CosmosNotificationsRepository>();
 
             services.AddHealthChecks()
                 .AddNpgSql(
