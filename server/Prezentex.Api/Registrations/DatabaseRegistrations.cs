@@ -33,6 +33,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 postgresSettings.ConnectionString,
                 name: "postgres",
                 timeout: TimeSpan.FromSeconds(3),
+                tags: new[] { "ready" })
+                .AddCosmosDb(
+                cosmosSettings.ConnectionString,
+                cosmosSettings.Database,
+                timeout: TimeSpan.FromSeconds(3),
                 tags: new[] { "ready" });
 
             return services;
