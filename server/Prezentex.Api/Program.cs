@@ -2,9 +2,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prezentex.Api.Controllers;
+using Prezentex.Api.Middleware;
 using Prezentex.Api.Options;
 using Prezentex.Api.Services;
 using Prezentex.Api.Services.Identity;
+using Prezentex.Api.Services.Notifications;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
@@ -53,6 +56,11 @@ builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddHttpClient();
 
+builder.Services.AddScoped<INotificationsService,NotificationsService>();
+builder.Services.AddScoped<IEventService>(
+    x => new EventService(
+        x.GetRequiredService<INotificationsService>(),
+        x.GetRequiredService<IIdentityService>()));
 
 var app = builder.Build();
 
@@ -62,6 +70,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseWhen(context => context.Request.Path.Equals("/auth/fb"),
+    appBuilder => appBuilder.UseEvents());
 
 app.UseHttpsRedirection();
 

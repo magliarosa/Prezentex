@@ -5,7 +5,7 @@ namespace Prezentex.Api.Repositories
 {
     public class CosmosDbContext : DbContext
     {
-        public CosmosDbContext(DbContextOptions<EntitiesDbContext> options) :
+        public CosmosDbContext(DbContextOptions<CosmosDbContext> options) :
             base(options)
         {
         }
@@ -13,7 +13,13 @@ namespace Prezentex.Api.Repositories
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.UseSerialColumns();
+            modelBuilder.Entity<Notification>()
+                .ToContainer("Notifications")
+                .HasPartitionKey(x => x.Id);
         }
+
+        public DbSet<Notification> Notifications { get; set; }
+
 
     }
 }

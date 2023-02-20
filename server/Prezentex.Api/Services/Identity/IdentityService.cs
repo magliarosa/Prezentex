@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Options;
 using Prezentex.Api.Repositories;
+using Prezentex.Api.Services.Notifications;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,14 +17,17 @@ namespace Prezentex.Api.Services.Identity
         private readonly JwtSettings _jwtSettings;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly EntitiesDbContext _context;
+        private INotificationsService _notificationsService { get; set; }
+        public event EventHandler<User> UserRegistered;
 
-        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters, EntitiesDbContext context = null)
+        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters, EntitiesDbContext context, INotificationsService notificationsService)
         {
             _facebookAuthService = facebookAuthService;
             _usersRepository = usersRepository;
             _jwtSettings = jwtSettings;
             _tokenValidationParameters = tokenValidationParameters;
             _context = context;
+            _notificationsService = notificationsService;
         }
 
         public async Task<AuthenticationResult> LoginWithFacebookAsync(string accessToken)
@@ -41,7 +45,7 @@ namespace Prezentex.Api.Services.Identity
 
             var user = await _usersRepository.GetUserByEmailAsync(userInfo.Email);
 
-            if(user == null)
+            if (user == null)
             {
                 var newUser = new User
                 {
@@ -57,6 +61,8 @@ namespace Prezentex.Api.Services.Identity
                 return await GenerateAuthenticationResultForUserAsync(newUser);
             }
 
+            OnUserRegistered(user);
+
             return await GenerateAuthenticationResultForUserAsync(user);
         }
 
@@ -69,12 +75,12 @@ namespace Prezentex.Api.Services.Identity
                 return new AuthenticationResult { Errors = new[] { "Invalid token" } };
             }
 
-            var expiryDateUnix = 
+            var expiryDateUnix =
                 long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
             var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 .AddSeconds(expiryDateUnix);
 
-            if(expiryDateTimeUtc > DateTime.UtcNow)
+            if (expiryDateTimeUtc > DateTime.UtcNow)
             {
                 return new AuthenticationResult { Errors = new[] { "This token hasn't expired yet" } };
             }
@@ -162,7 +168,7 @@ namespace Prezentex.Api.Services.Identity
             try
             {
                 var principal = tokenHandler.ValidateToken(token, _tokenValidationParameters, out var validatedToken);
-                if(!IsJwtWithValidSecutityAlgorithm(validatedToken))
+                if (!IsJwtWithValidSecutityAlgorithm(validatedToken))
                 {
                     return null;
                 };
@@ -180,5 +186,12 @@ namespace Prezentex.Api.Services.Identity
                 jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                     StringComparison.InvariantCultureIgnoreCase);
         }
+
+        protected virtual void OnUserRegistered(User user)
+        {
+            UserRegistered?.Invoke(this, user);
+        }
     }
+
 }
+
