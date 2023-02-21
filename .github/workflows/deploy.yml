@@ -21,10 +21,10 @@ jobs:
         dotnet-version: '6.0.x'
 
     - name: Build with dotnet
-      run: dotnet build /server/Prezentex.Api/Prezentex.Api.csproj --configuration Release
+      run: dotnet build /server/Prezentex.Api/Prezentex.Api.csproj --configuration Debug
 
     - name: Publish with dotnet
-      run: dotnet publish /server/Prezentex.Api/Prezentex.Api.csproj --configuration Release --output publish
+      run: dotnet publish /server/Prezentex.Api/Prezentex.Api.csproj --configuration Debug --output publish
 
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
