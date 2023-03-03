@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Prezentex.UnitTests
@@ -11,7 +12,7 @@ namespace Prezentex.UnitTests
     public class TestBase
     {
         private readonly Random rand = new Random();
-
+        protected readonly CancellationToken _cancellationToken = new CancellationToken();
 
 
         public User CreateRandomUser()

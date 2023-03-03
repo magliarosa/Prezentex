@@ -5,9 +5,9 @@ namespace Prezentex.Api
 {
     public static class Extensions
     {
-        public static GiftDto AsDto(this Gift gift)
+        public static Dtos.GiftDto AsDto(this Entities.Gift gift)
         {
-            return new GiftDto(
+            return new Dtos.GiftDto(
                 gift.Id, 
                 gift.CreatedDate, 
                 gift.Name, 
@@ -32,7 +32,7 @@ namespace Prezentex.Api
                 user.Id,
                 user.CreatedDate,
                 user.Username,
-                user.Gifts,
+                user.Gifts.Select(x => x.AsDto()).ToList(),
                 user.Recipients,
                 user.Email);
         }

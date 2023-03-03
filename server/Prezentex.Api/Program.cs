@@ -1,15 +1,12 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Prezentex.Api.Controllers;
 using Prezentex.Api.Middleware;
-using Prezentex.Api.Options;
 using Prezentex.Api.Services;
 using Prezentex.Api.Services.Identity;
 using Prezentex.Api.Services.Notifications;
 using System.Net.Mime;
-using System.Text;
+using System.Reflection;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,7 +48,8 @@ builder.Services.AddSwaggerGen(c =>
     };
     c.AddSecurityRequirement(security);
 });
-
+builder.Services.AddMediatR(
+    cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddHttpClient();
@@ -78,6 +76,8 @@ app.UseHttpsRedirection();
 
 
 app.UseRouting();
+
+app.UseHttpErrorHandling();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -115,7 +115,6 @@ app.UseEndpoints(endpoints =>
         Predicate = (_) => false
     });
 });
-
 
 app.MapControllers();
 

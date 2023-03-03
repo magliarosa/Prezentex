@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
+using Prezentex.Api.Commands;
 using Prezentex.Api.Dtos;
-using Prezentex.Api.Entities;
-using Prezentex.Api.Repositories;
-using Prezentex.Api.Repositories.Recipients;
+using Prezentex.Api.Queries;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Prezentex.Api.Controllers
@@ -15,104 +14,59 @@ namespace Prezentex.Api.Controllers
     [ApiController]
     public class GiftsController : ControllerBase
     {
-        private readonly IGiftsRepository giftsRepository;
-        private readonly IRecipientsRepository recipientsRepository;
+        private readonly IMediator _mediator;
 
-        public GiftsController(IGiftsRepository giftsRepository, IRecipientsRepository recipientsRepository)
+        public GiftsController(IMediator mediator)
         {
-            this.giftsRepository = giftsRepository;
-            this.recipientsRepository = recipientsRepository;
+            _mediator = mediator;
         }
 
         [SwaggerOperation(Summary = "Get all gifts")]
         [HttpGet]
-        public async Task<IEnumerable<GiftDto>> GetGiftsAsync()
+        public async Task<ActionResult<IEnumerable<GiftDto>>> GetGiftsAsync()
         {
-            var gifts = await giftsRepository.GetGiftsAsync();
-            var giftsDto = gifts.Select(gift => gift.AsDto());
-            return giftsDto;
+            var query = new GetAllGiftsQuery();
+            var result = await _mediator.Send(query);
+            var giftsDto = result.Select(x => x.AsDto());
+            return Ok(giftsDto);
         }
 
         [SwaggerOperation(Summary = "Get gift by ID")]
         [HttpGet("{id}")]
         public async Task<ActionResult<GiftDto>> GetGiftAsync(Guid id)
         {
-            var gift = await giftsRepository.GetGiftAsync(id);
-
-            if (gift == null)
-                return NotFound();
-
-            var userOwnsGift = gift.UserId == HttpContext.GetUserId();
-            if (!userOwnsGift)
-                return BadRequest(new { error = "You do not own this gift" });
-
-            return gift.AsDto();
+            var query = new GetGiftQuery(id, HttpContext.GetUserId());
+            var result = await _mediator.Send(query);
+            var giftDto = result.AsDto();
+            return giftDto;
         }
 
         [SwaggerOperation(Summary = "Create gift")]
         [HttpPost]
         public async Task<ActionResult<GiftDto>> CreateGiftAsync(CreateGiftDto giftDto)
         {
-            var newGift = new Gift()
-            {
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                Description = giftDto.Description,
-                Id = Guid.NewGuid(),
-                Name = giftDto.Name,
-                Price = giftDto.Price,
-                ProductUrl = giftDto.ProductUrl,
-                UserId = HttpContext.GetUserId()
-            };
-
-            await giftsRepository.CreateGiftAsync(newGift);
-
-            return CreatedAtAction(nameof(GetGiftAsync), new { Id = newGift.Id }, newGift.AsDto());
+            var command = new CreateGiftCommand(giftDto.Name, giftDto.Description, giftDto.Price, giftDto.ProductUrl, HttpContext.GetUserId());
+            var result = await _mediator.Send(command);
+            var newGiftDto = result.AsDto();
+            return CreatedAtAction(nameof(GetGiftAsync), new { ID = newGiftDto.Id }, result);
         }
 
         [SwaggerOperation(Summary = "Update gift")]
-        [HttpPut("{id}")]
-        public async Task<ActionResult<GiftDto>> UpdateGiftAsync(Guid id, UpdateGiftDto giftDto)
+        [HttpPut("{giftId}")]
+        public async Task<ActionResult<GiftDto>> UpdateGiftAsync(Guid giftId, UpdateGiftDto giftDto)
         {
-            var existingGift = await giftsRepository.GetGiftAsync(id);
-            if (existingGift == null)
-                return NotFound();
-            
-            var userOwnsGift = existingGift.UserId == HttpContext.GetUserId();
-            if (!userOwnsGift)
-                return BadRequest(new { error = "You do not own this gift" });
-
-            var updatedGift = new Gift
-            {
-                Id = existingGift.Id,
-                Description = giftDto.Description,
-                Name = giftDto.Name,
-                Price = giftDto.Price,
-                ProductUrl = giftDto.ProductUrl,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                Recipients = existingGift.Recipients,
-                UserId = existingGift.UserId
-            };
-
-            await giftsRepository.UpdateGiftAsync(updatedGift);
-
-            return Ok(updatedGift.AsDto());
+            var command = new UpdateGiftCommand(giftId, giftDto.Name, giftDto.Description, giftDto.Price, giftDto.ProductUrl, HttpContext.GetUserId());
+            var result = await _mediator.Send(command);
+            var updatedGiftDto = result.AsDto();
+            return Ok(updatedGiftDto);
         }
 
         [SwaggerOperation(Summary = "Delete gift")]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteGiftAsync(Guid id)
+        [HttpDelete("{giftId}")]
+        public async Task<ActionResult> DeleteGiftAsync(Guid giftId)
         {
-            var existingGift = await giftsRepository.GetGiftAsync(id);
-            if (existingGift == null)
-                return NotFound();
-            
-            var userOwnsGift = existingGift.UserId == HttpContext.GetUserId();
-            if (!userOwnsGift)
-                return BadRequest(new { error = "You do not own this gift" });
-
-            await giftsRepository.DeleteGiftAsync(id);
-
+            var command = new DeleteGiftCommand(giftId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
 
@@ -120,23 +74,8 @@ namespace Prezentex.Api.Controllers
         [HttpPost("{giftId}/recipients")]
         public async Task<ActionResult> AddRecipientToGiftAsync(Guid giftId, AddRecipientToGiftDto addRecipientToGiftDto)
         {
-            var gift = await giftsRepository.GetGiftAsync(giftId);
-            var recipientId = addRecipientToGiftDto.RecipientId;
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-            
-            if (gift == null || recipient == null)
-                return NotFound();
-
-            var userOwnsGift = gift.UserId == HttpContext.GetUserId();
-            if (!userOwnsGift)
-                return BadRequest(new { error = "You do not own this gift" });
-
-            var userOwnsRecipient = recipient.UserId == HttpContext.GetUserId();
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "You do not own this recipient" });
-
-            await giftsRepository.AddRecipientToGiftAsync(giftId, recipientId);
-
+            var command = new AddRecipientToGiftCommand(addRecipientToGiftDto.RecipientId, giftId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
 
@@ -145,23 +84,8 @@ namespace Prezentex.Api.Controllers
         [HttpDelete("{giftId}/recipients")]
         public async Task<ActionResult> RemoveRecipientFromGiftAsync(Guid giftId, RemoveRecipientFromGiftDto removeRecipientFromGiftDto)
         {
-            var gift = await giftsRepository.GetGiftAsync(giftId);
-            var recipientId = removeRecipientFromGiftDto.RecipientId;
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-
-            if (gift == null || recipient == null || !gift.Recipients.Any(recipient => recipient.Id == recipientId))
-                return NotFound();
-
-            var userOwnsGift = gift.UserId == HttpContext.GetUserId();
-            if (!userOwnsGift)
-                return BadRequest(new { error = "You do not own this gift" });
-
-            var userOwnsRecipient = recipient.UserId == HttpContext.GetUserId();
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "You do not own this recipient" });
-
-            await giftsRepository.RemoveRecipientFromGiftAsync(giftId, recipientId);
-
+            var command = new RemoveRecipientFromGiftCommand(removeRecipientFromGiftDto.RecipientId, giftId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
     }

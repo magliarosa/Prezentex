@@ -48,7 +48,7 @@ namespace Prezentex.Api.Dtos
         Guid Id,
         DateTimeOffset CreatedDate,
         string Username,
-        ICollection<Gift> Gifts,
+        ICollection<GiftDto> Gifts,
         ICollection<Recipient> Recipients,
         string Email);
     public record CreateUserDto(
