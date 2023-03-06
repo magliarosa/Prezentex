@@ -1,40 +1,39 @@
 ﻿using MediatR;
-using Prezentex.Api.Commands;
+using Prezentex.Api.Commands.Gifts;
 using Prezentex.Api.Exceptions;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Recipients;
 
-namespace Prezentex.Api.Handlers
+namespace Prezentex.Api.Handlers.Commands.Gifts
 {
-    public class RemoveRecipientFromGiftHandler : IRequestHandler<RemoveRecipientFromGiftCommand, Unit>
+    public class AddRecipientToGiftHandler : IRequestHandler<AddRecipientToGiftCommand, Unit>
     {
         private readonly IGiftsRepository _giftsRepository;
         private readonly IRecipientsRepository _recipientsRepository;
 
-        public RemoveRecipientFromGiftHandler(IGiftsRepository giftsRepository, IRecipientsRepository recipientsRepository)
+        public AddRecipientToGiftHandler(IGiftsRepository giftsRepository, IRecipientsRepository recipientsRepository)
         {
             _giftsRepository = giftsRepository;
             _recipientsRepository = recipientsRepository;
         }
-        public async Task<Unit> Handle(RemoveRecipientFromGiftCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(AddRecipientToGiftCommand request, CancellationToken cancellationToken)
         {
             var gift = await _giftsRepository.GetGiftAsync(request.GiftId);
             var recipientId = request.RecipientId;
             var recipient = await _recipientsRepository.GetRecipientAsync(recipientId);
 
-            if (gift == null || recipient == null || !gift.Recipients.Any(recipient => recipient.Id == recipientId))
+            if (gift == null || recipient == null)
                 throw new ResourceNotFoundException();
 
             var userOwnsGift = gift.UserId == request.UserId;
             if (!userOwnsGift)
-                throw new ArgumentException("You do not own this gift" );
+                throw new ArgumentException("You do not own this gift");
 
             var userOwnsRecipient = recipient.UserId == request.UserId;
             if (!userOwnsRecipient)
-                throw new ArgumentException("You do not own this recipient" );
+                throw new ArgumentException("You do not own this recipient");
 
-
-            await _giftsRepository.RemoveRecipientFromGiftAsync(gift.Id, recipientId);
+            await _giftsRepository.AddRecipientToGiftAsync(gift.Id, recipientId);
 
             return Unit.Value;
         }

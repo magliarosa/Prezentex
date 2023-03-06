@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Prezentex.Api.Commands
+namespace Prezentex.Api.Commands.Gifts
 {
     public class DeleteGiftCommand : IRequest<Unit>
     {

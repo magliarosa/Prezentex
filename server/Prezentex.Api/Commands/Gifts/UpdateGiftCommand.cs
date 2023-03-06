@@ -2,7 +2,7 @@
 using Prezentex.Api.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Prezentex.Api.Commands
+namespace Prezentex.Api.Commands.Gifts
 {
     public class UpdateGiftCommand : IRequest<Gift>
     {

@@ -1,12 +1,13 @@
 ﻿using FluentAssertions;
 using MediatR;
 using Moq;
-using Prezentex.Api.Commands;
+using Prezentex.Api.Commands.Gifts;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Exceptions;
-using Prezentex.Api.Handlers;
-using Prezentex.Api.Queries;
+using Prezentex.Api.Handlers.Commands.Gifts;
+using Prezentex.Api.Handlers.Queries.Gifts;
+using Prezentex.Api.Queries.Gifts;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Recipients;
 using System;
@@ -28,7 +29,7 @@ namespace Prezentex.UnitTests.HandlerTests
         {
             //Arrange
             _giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
-                .ReturnsAsync<IGiftsRepository, Gift>((Gift)null);
+                .ReturnsAsync((Gift)null);
             var querry = new GetGiftQuery(
                 Guid.NewGuid(),
                 Guid.NewGuid());
@@ -171,7 +172,7 @@ namespace Prezentex.UnitTests.HandlerTests
                 Guid.NewGuid().ToString());
             var giftId = Guid.NewGuid();
             _giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
-                .ReturnsAsync<IGiftsRepository, Gift>((Gift)null);
+                .ReturnsAsync((Gift)null);
             var command = new UpdateGiftCommand(
                 giftId,
                 giftToUpdate.Name,
@@ -212,7 +213,7 @@ namespace Prezentex.UnitTests.HandlerTests
             //Arrange
             var giftId = Guid.NewGuid();
             _giftsRepositoryStub.Setup(options => options.GetGiftAsync(It.IsAny<Guid>()))
-                .ReturnsAsync<IGiftsRepository, Gift>((Gift)null);
+                .ReturnsAsync((Gift)null);
             var command = new DeleteGiftCommand(
                 Guid.NewGuid(),
                 Guid.NewGuid());
@@ -279,7 +280,7 @@ namespace Prezentex.UnitTests.HandlerTests
             //Arrange
             var giftId = Guid.NewGuid();
             _giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
-                .ReturnsAsync<IGiftsRepository, Gift>((Gift)null);
+                .ReturnsAsync((Gift)null);
             var existingRecipient = CreateRandomRecipient();
             var recipientId = existingRecipient.Id;
             _recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))
@@ -353,7 +354,7 @@ namespace Prezentex.UnitTests.HandlerTests
             //Arrange
             var giftId = Guid.NewGuid();
             _giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
-                .ReturnsAsync<IGiftsRepository, Gift>((Gift)null);
+                .ReturnsAsync((Gift)null);
             var existingRecipient = CreateRandomRecipient();
             var recipientId = existingRecipient.Id;
             _recipientsRepositoryStub.Setup(repo => repo.GetRecipientAsync(It.IsAny<Guid>()))

@@ -1,14 +1,13 @@
 ﻿using MediatR;
 
-namespace Prezentex.Api.Commands
+namespace Prezentex.Api.Commands.Gifts
 {
-    public class RemoveRecipientFromGiftCommand : IRequest<Unit>
+    public class AddRecipientToGiftCommand : IRequest<Unit>
     {
         public Guid RecipientId { get; set; }
         public Guid GiftId { get; set; }
         public Guid UserId { get; set; }
-
-        public RemoveRecipientFromGiftCommand(Guid recipientId, Guid giftId, Guid userId)
+        public AddRecipientToGiftCommand(Guid recipientId, Guid giftId, Guid userId)
         {
             RecipientId = recipientId;
             GiftId = giftId;
