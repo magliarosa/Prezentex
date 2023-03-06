@@ -1,9 +1,9 @@
 ﻿using MediatR;
-using Prezentex.Api.Commands;
+using Prezentex.Api.Commands.Gifts;
 using Prezentex.Api.Exceptions;
 using Prezentex.Api.Repositories;
 
-namespace Prezentex.Api.Handlers
+namespace Prezentex.Api.Handlers.Commands.Gifts
 {
     public class DeleteGiftHandler : IRequestHandler<DeleteGiftCommand, Unit>
     {
@@ -21,7 +21,7 @@ namespace Prezentex.Api.Handlers
 
             var userOwnsGift = existingGift.UserId == request.UserId;
             if (!userOwnsGift)
-                throw new ArgumentException("You do not own this gift" );
+                throw new ArgumentException("You do not own this gift");
 
             await _giftsRepository.DeleteGiftAsync(request.GiftId);
 

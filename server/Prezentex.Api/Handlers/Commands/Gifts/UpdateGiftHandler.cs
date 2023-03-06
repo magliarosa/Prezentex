@@ -1,10 +1,10 @@
 ﻿using MediatR;
-using Prezentex.Api.Commands;
+using Prezentex.Api.Commands.Gifts;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Exceptions;
 using Prezentex.Api.Repositories;
 
-namespace Prezentex.Api.Handlers
+namespace Prezentex.Api.Handlers.Commands.Gifts
 {
     public class UpdateGiftHandler : IRequestHandler<UpdateGiftCommand, Gift>
     {

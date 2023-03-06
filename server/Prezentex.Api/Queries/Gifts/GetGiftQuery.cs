@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 
-namespace Prezentex.Api.Queries
+namespace Prezentex.Api.Queries.Gifts
 {
     public class GetGiftQuery : IRequest<Gift>
     {

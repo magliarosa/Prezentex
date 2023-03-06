@@ -1,12 +1,12 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Prezentex.Api.Commands;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Controllers;
+using Prezentex.Api.Commands.Gifts;
 
-namespace Prezentex.Api.Handlers
+namespace Prezentex.Api.Handlers.Commands.Gifts
 {
     public class CreateGiftHandler : IRequestHandler<CreateGiftCommand, Gift>
     {

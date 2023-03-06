@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
 using Prezentex.Api.Exceptions;
-using Prezentex.Api.Queries;
+using Prezentex.Api.Queries.Gifts;
 using Prezentex.Api.Repositories;
 
-namespace Prezentex.Api.Handlers
+namespace Prezentex.Api.Handlers.Queries.Gifts
 {
     public class GetGiftHandler : IRequestHandler<GetGiftQuery, Gift>
     {

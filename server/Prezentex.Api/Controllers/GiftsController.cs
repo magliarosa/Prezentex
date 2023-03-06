@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Prezentex.Api.Commands;
+using Prezentex.Api.Commands.Gifts;
 using Prezentex.Api.Dtos;
-using Prezentex.Api.Queries;
+using Prezentex.Api.Queries.Gifts;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Prezentex.Api.Controllers

@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Prezentex.Api.Commands.Recipients;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
+using Prezentex.Api.Queries.Recipients;
 using Prezentex.Api.Repositories.Recipients;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -13,102 +16,64 @@ namespace Prezentex.Api.Controllers
     [ApiController]
     public class RecipientsController : ControllerBase
     {
-        private readonly IRecipientsRepository recipientsRepository;
+        private readonly IMediator _mediator;
 
-        public RecipientsController(IRecipientsRepository recipientsRepository)
+        public RecipientsController(IMediator mediator)
         {
-            this.recipientsRepository = recipientsRepository;
+            _mediator = mediator;
         }
 
         [SwaggerOperation(Summary = "Get all recipients")]
         [HttpGet]
-        public async Task<IEnumerable<RecipientDto>> GetRecipientsAsync()
+        public async Task<ActionResult<IEnumerable<RecipientDto>>> GetRecipientsAsync()
         {
-            var recipients = await recipientsRepository.GetRecipientsAsync();
-            var recipientsDto = recipients.Select(recipient => recipient.AsDto());
-            return recipientsDto;
+            var query = new GetAllRecipientsQuery();
+            var result = await _mediator.Send(query);
+            var giftsDto = result.Select(x => x.AsDto());
+            return Ok(giftsDto);
         }
 
         [SwaggerOperation(Summary = "Get recipient by ID")]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<RecipientDto>> GetRecipientAsync(Guid id)
+        [HttpGet("{recipientId}")]
+        public async Task<ActionResult<RecipientDto>> GetRecipientAsync(Guid recipientId)
         {
-            var recipient = await recipientsRepository.GetRecipientAsync(id);
-
-            if (recipient == null)
-                return NotFound();
-
-            var userOwnsRecipient = recipient.UserId == HttpContext.GetUserId();
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "You do not own this recipient" });
-
-            return recipient.AsDto();
+            var query = new GetRecipientQuery(recipientId, HttpContext.GetUserId());
+            var result = await _mediator.Send(query);
+            var giftDto = result.AsDto();
+            return giftDto;
         }
 
         [SwaggerOperation(Summary = "Create recipient")]
         [HttpPost]
         public async Task<ActionResult<RecipientDto>> CreateRecipientAsync(CreateRecipientDto recipientDto)
         {
-            var newRecipient = new Recipient()
-            {
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                Id = Guid.NewGuid(),
-                Name = recipientDto.Name,
-                BirthDay = recipientDto.BirthDay,
-                NameDay = recipientDto.NameDay,
-                Note = recipientDto.Note,
-                UserId = HttpContext.GetUserId()
-            };
-
-            await recipientsRepository.CreateRecipientAsync(newRecipient);
-
-            return CreatedAtAction(nameof(GetRecipientAsync), new { Id = newRecipient.Id }, newRecipient.AsDto());
+            var command = new CreateRecipientCommand(recipientDto.Name, recipientDto.BirthDay, recipientDto.NameDay, recipientDto.Note, HttpContext.GetUserId());
+            var result = await _mediator.Send(command);
+            var newRecipientDto = result.AsDto();
+            return CreatedAtAction(nameof(GetRecipientAsync), new { Id = newRecipientDto.Id }, newRecipientDto);
         }
 
         [SwaggerOperation(Summary = "Update recipient")]
-        [HttpPut("{id}")]
-        public async Task<ActionResult<GiftDto>> UpdateRecipientAsync(Guid id, UpdateRecipientDto recipientDto)
+        [HttpPut("{recipitentId}")]
+        public async Task<ActionResult<RecipientDto>> UpdateRecipientAsync(Guid recipitentId, UpdateRecipientDto recipientDto)
         {
-            var existingRecipient = await recipientsRepository.GetRecipientAsync(id);
-
-            if (existingRecipient == null)
-                return NotFound();
-
-            var userOwnsRecipient = existingRecipient.UserId == HttpContext.GetUserId();
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "You do not own this recipient" });
-
-            var updatedRecipient = new Recipient
-            {
-                Id = existingRecipient.Id,
-                Name = recipientDto.Name,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                BirthDay = recipientDto.BirthDay,
-                NameDay = recipientDto.NameDay,
-                CreatedDate = existingRecipient.CreatedDate,
-                Note = recipientDto.Note
-            };
-
-            await recipientsRepository.UpdateRecipientAsync(updatedRecipient);
-
-            return Ok(updatedRecipient.AsDto());
+            var command = new UpdateRecipientCommand(
+                recipitentId,
+                recipientDto.Note,
+                recipientDto.Name,
+                recipientDto.BirthDay,
+                recipientDto.NameDay,
+                HttpContext.GetUserId());
+            var result = await _mediator.Send(command);
+            return result.AsDto();
         }
 
         [SwaggerOperation(Summary = "Delete recipient")]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteRecipientAsync(Guid id)
+        [HttpDelete("{recipientId}")]
+        public async Task<ActionResult> DeleteRecipientAsync(Guid recipientId)
         {
-            var existingRecipient = await recipientsRepository.GetRecipientAsync(id);
-            if (existingRecipient == null)
-                return NotFound();
-
-            var userOwnsRecipient = existingRecipient.UserId == HttpContext.GetUserId();
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "You do not own this recipient" });
-
-            await recipientsRepository.DeleteRecipientAsync(id);
-
+            var command = new DeleteRecipientCommand(recipientId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
     }
