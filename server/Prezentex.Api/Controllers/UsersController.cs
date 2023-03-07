@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Prezentex.Api.Commands.Users;
 using Prezentex.Api.Dtos;
 using Prezentex.Api.Entities;
+using Prezentex.Api.Queries.Users;
 using Prezentex.Api.Repositories;
 using Prezentex.Api.Repositories.Recipients;
 using Swashbuckle.AspNetCore.Annotations;
@@ -19,100 +22,63 @@ namespace Prezentex.Api.Controllers
         private readonly IUsersRepository usersRepository;
         private readonly IGiftsRepository giftsRepository;
         private readonly IRecipientsRepository recipientsRepository;
+        private readonly IMediator _mediator;
 
-        public UsersController(IUsersRepository usersRepository, IGiftsRepository giftsRepository, IRecipientsRepository recipientsRepository)
+        public UsersController(IUsersRepository usersRepository, IGiftsRepository giftsRepository, IRecipientsRepository recipientsRepository, IMediator mediator)
         {
             this.usersRepository = usersRepository;
             this.giftsRepository = giftsRepository;
             this.recipientsRepository = recipientsRepository;
+            _mediator = mediator;
         }
 
         [SwaggerOperation(Summary = "Get all users")]
         [HttpGet]
-        public async Task<IEnumerable<UserDto>> GetUsersAsync()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersAsync()
         {
-            var users = await usersRepository.GetUsersAsync();
-            var usersDto = users.Select(user => user.AsDto());
-            return usersDto;
+            var query = new GetAllUsersQuery();
+            var result = await _mediator.Send(query);
+            var usersDto = result.Select(x => x.AsDto());
+            return Ok(usersDto);
         }
 
         [SwaggerOperation(Summary = "Get user by ID")]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>> GetUserAsync(Guid id)
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<UserDto>> GetUserAsync(Guid userId)
         {
-            var user = await usersRepository.GetUserAsync(id);
-
-            if (user == null)
-                return NotFound();
-
-            var isCorrectUser = user.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            return user.AsDto();
+            var query = new GetUserQuery(userId, HttpContext.GetUserId());
+            var result = await _mediator.Send(query);
+            return Ok(result.AsDto());
         }
 
         [SwaggerOperation(Summary = "Create user")]
         [HttpPost]
         public async Task<ActionResult<UserDto>> CreateUserAsync(CreateUserDto userDto)
         {
-            var newUser = new User
-            {
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                Id = Guid.NewGuid(),
-                Username = userDto.Username,
-                Email = userDto.Email
-            };
-
-            await usersRepository.CreateUserAsync(newUser);
-
-            return CreatedAtAction(nameof(GetUserAsync), new { Id = newUser.Id }, newUser.AsDto());
+            var command = new CreateUserCommand(userDto.Username, userDto.Email);
+            var result = await _mediator.Send(command);
+            return CreatedAtAction(nameof(GetUserAsync), new { Id = result.Id }, result.AsDto());
         }
 
         [SwaggerOperation(Summary = "Update user")]
-        [HttpPut("{id}")]
-        public async Task<ActionResult<UserDto>> UpdateUserAsync(Guid id, UpdateUserDto userDto)
+        [HttpPut("{userId}")]
+        public async Task<ActionResult<UserDto>> UpdateUserAsync(Guid userId, UpdateUserDto userDto)
         {
-            var existingUser = await usersRepository.GetUserAsync(id);
-
-            if (existingUser == null)
-                return NotFound();
-
-            var isCorrectUser = existingUser.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            var updatedUser = new User
-            {
-                Id = existingUser.Id,
-                Username = userDto.Username,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                CreatedDate = existingUser.CreatedDate,
-                Gifts = existingUser.Gifts,
-                Recipients = existingUser.Recipients,
-                Email = userDto.Email
-            };
-
-            await usersRepository.UpdateUserAsync(updatedUser);
-
-            return Ok(updatedUser.AsDto());
+            var command = new UpdateUserCommand(
+                userDto.Username,
+                userDto.Email,
+                userId,
+                HttpContext.GetUserId());
+            var result = await _mediator.Send(command);
+            return Ok(result.AsDto());
         }
 
         [SwaggerOperation(Summary = "Delete user")]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteUserAsync(Guid id)
+        [HttpDelete("{userId}")]
+        public async Task<ActionResult> DeleteUserAsync(Guid userId)
         {
-            var existingUser = await usersRepository.GetUserAsync(id);
-            if (existingUser == null)
-                return NotFound();
-
-            var isCorrectUser = existingUser.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            await usersRepository.DeleteUserAsync(id);
-
+            var command = new DeleteUserCommand(userId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
 
@@ -120,48 +86,17 @@ namespace Prezentex.Api.Controllers
         [HttpPost("{userId}/gifts")]
         public async Task<ActionResult> AddGiftToUserAsync(Guid userId, AddGiftToUserDto addGiftToUserDto)
         {
-            var giftId = addGiftToUserDto.GiftId;
-            var user = await usersRepository.GetUserAsync(userId);
-            var gift = await giftsRepository.GetGiftAsync(addGiftToUserDto.GiftId);
-            
-            if (user == null || gift == null)
-                return NotFound();
-
-            var isCorrectUser = user.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            var userOwnsGift = gift.UserId == user.Id;
-            if (!userOwnsGift)
-                return BadRequest(new { error = "User does not own this gift" });
-
-            await usersRepository.AddGiftToUserAsync(userId, giftId);
-
+            var command = new AddGiftToUserCommand(addGiftToUserDto.GiftId, userId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
-
 
         [SwaggerOperation(Summary = "Remove gift from user by Id")]
         [HttpDelete("{userId}/gifts")]
         public async Task<ActionResult> RemoveGiftFromUserAsync(Guid userId, RemoveGiftFromUserDto removeGiftFromUserDto)
         {
-            var user = await usersRepository.GetUserAsync(userId);
-            var giftId = removeGiftFromUserDto.GiftId;
-            var gift = await giftsRepository.GetGiftAsync(giftId);
-
-            if (user == null || gift == null || !user.Gifts.Any(gift => gift.Id == giftId))
-                return NotFound();
-
-            var isCorrectUser = user.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            var userOwnsGift = gift.UserId == user.Id;
-            if (!userOwnsGift)
-                return BadRequest(new { error = "User does not own this gift" });
-
-            await usersRepository.RemoveGiftFromUserAsync(userId, giftId);
-
+            var command = new RemoveGiftFromUserCommand(removeGiftFromUserDto.GiftId, userId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
 
@@ -169,23 +104,8 @@ namespace Prezentex.Api.Controllers
         [HttpPost("{userId}/recipients")]
         public async Task<ActionResult> AddRecipientToUserAsync(Guid userId, AddRecipientToUserDto addRecipientToUserDto)
         {
-            var recipientId = addRecipientToUserDto.RecipientId;
-            var user = await usersRepository.GetUserAsync(userId);
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-
-            if (user == null || recipient == null)
-                return NotFound();
-
-            var isCorrectUser = user.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            var userOwnsRecipient = recipient.UserId == user.Id;
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "User does not own this recipient" });
-
-            await usersRepository.AddRecipientToUserAsync(userId, recipientId);
-
+            var command = new AddRecipientToUserCommand(addRecipientToUserDto.RecipientId, userId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
 
@@ -194,23 +114,8 @@ namespace Prezentex.Api.Controllers
         [HttpDelete("{userId}/recipients")]
         public async Task<ActionResult> RemoveRecipientFromUserAsync(Guid userId, RemoveRecipientFromUserDto removeRecipientFromUserDto)
         {
-            var user = await usersRepository.GetUserAsync(userId);
-            var recipientId = removeRecipientFromUserDto.RecipientId;
-            var recipient = await recipientsRepository.GetRecipientAsync(recipientId);
-
-            if (user == null || recipient == null || !user.Recipients.Any(recipient => recipient.Id == recipientId))
-                return NotFound();
-            
-            var isCorrectUser = user.Id == HttpContext.GetUserId();
-            if (!isCorrectUser)
-                return Forbid();
-
-            var userOwnsRecipient = recipient.UserId == user.Id;
-            if (!userOwnsRecipient)
-                return BadRequest(new { error = "User does not own this recipient" });
-
-            await usersRepository.RemoveRecipientFromUserAsync(userId, recipientId);
-
+            var command = new RemoveRecipientFromUserCommand(removeRecipientFromUserDto.RecipientId, userId, HttpContext.GetUserId());
+            await _mediator.Send(command);
             return NoContent();
         }
     }

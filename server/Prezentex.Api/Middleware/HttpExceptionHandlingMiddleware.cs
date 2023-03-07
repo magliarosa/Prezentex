@@ -20,25 +20,36 @@ namespace Prezentex.Api.Middleware
             }
             catch (Exception ex)
             {
-                httpContext = SetStatusCode(httpContext, ex);
+                httpContext = await SetResponse(httpContext, ex);
             }
         }
 
-        private static HttpContext SetStatusCode(HttpContext httpContext, Exception ex)
+        private static async Task<HttpContext> SetResponse(HttpContext httpContext, Exception ex)
         {
+            int statusCode;
+            string message = String.Empty;
             switch (ex)
             {
                 case ArgumentException _:
-                    httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-                    httpContext.Response.WriteAsJsonAsync(new {errors = ex.Message});
+                    statusCode = StatusCodes.Status400BadRequest;
+                    message = ex.Message;
                     break;
                 case ResourceNotFoundException _:
-                    httpContext.Response.StatusCode = StatusCodes.Status404NotFound; 
+                    statusCode = StatusCodes.Status404NotFound;
+                    message = ex.Message;
+                    break;
+                case UnauthorizedAccessException _:
+                    statusCode = StatusCodes.Status403Forbidden;
+                    message = ex.Message;
                     break;
                 default:
-                    httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    statusCode = StatusCodes.Status500InternalServerError;
                     break;
             }
+
+            httpContext.Response.StatusCode = statusCode;
+            if (!String.IsNullOrWhiteSpace(message))
+                await httpContext.Response.WriteAsJsonAsync(new { errors = ex.Message });
 
             return httpContext;
         }
