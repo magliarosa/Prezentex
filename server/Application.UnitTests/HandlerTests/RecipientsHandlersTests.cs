@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Application.UnitTests;
+using FluentAssertions;
 using MediatR;
 using Moq;
 using Prexentex.Application.Recipients.Commands.UpdateRecipient;
@@ -10,7 +11,7 @@ using Prezentex.Application.Recipients.Queries.GetAllRecipients;
 using Prezentex.Application.Recipients.Queries.GetRecipient;
 using Prezentex.Domain.Entities;
 
-namespace Prezentex.UnitTests.HandlerTests
+namespace Application.UnitTests.HandlerTests
 {
     public class RecipientsHandlersTests : TestBase
     {

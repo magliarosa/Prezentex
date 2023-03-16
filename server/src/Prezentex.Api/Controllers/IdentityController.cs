@@ -36,7 +36,7 @@ namespace Prezentex.Api.Controllers
         }
 
         [HttpPost("/refresh")]
-        public async Task<IActionResult> FacebookAuth([FromBody] RefreshTokenRequestDto request)
+        public async Task<IActionResult> FacebookAuthRefresh([FromBody] RefreshTokenRequestDto request)
         {
             var authResponse = await identityService.RefreshTokenAsync(request.Token, request.RefreshToken);
 
