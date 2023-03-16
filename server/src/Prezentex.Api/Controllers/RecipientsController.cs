@@ -41,7 +41,7 @@ namespace Prezentex.Api.Controllers
             var query = new GetRecipientQuery(recipientId, HttpContext.GetUserId());
             var result = await _mediator.Send(query);
             var giftDto = result.AsDto();
-            return giftDto;
+            return Ok(giftDto);
         }
 
         [SwaggerOperation(Summary = "Create recipient")]
@@ -66,7 +66,7 @@ namespace Prezentex.Api.Controllers
                 recipientDto.NameDay,
                 HttpContext.GetUserId());
             var result = await _mediator.Send(command);
-            return result.AsDto();
+            return Ok(result.AsDto());
         }
 
         [SwaggerOperation(Summary = "Delete recipient")]

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Application.UnitTests;
+using FluentAssertions;
 using MediatR;
 using Moq;
 using Prezentex.Application.Common.Interfaces.Repositories;
@@ -14,7 +15,7 @@ using Prezentex.Application.Users.Queries.GetAllUsers;
 using Prezentex.Application.Users.Queries.GetUser;
 using Prezentex.Domain.Entities;
 
-namespace Prezentex.UnitTests.HandlerTests
+namespace Application.UnitTests.HandlerTests
 {
     public class UsersHandlersTests : TestBase
     {

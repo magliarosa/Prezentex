@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Application.UnitTests;
+using FluentAssertions;
 using MediatR;
 using Moq;
 using Prezentex.Application.Common.Interfaces.Repositories;
@@ -12,7 +13,7 @@ using Prezentex.Application.Gifts.Queries.GetAllGifts;
 using Prezentex.Application.Gifts.Queries.GetGift;
 using Prezentex.Domain.Entities;
 
-namespace Prezentex.UnitTests.HandlerTests
+namespace Application.UnitTests.HandlerTests
 {
     public class GiftsHandlersTests : TestBase
     {
@@ -45,12 +46,12 @@ namespace Prezentex.UnitTests.HandlerTests
             var expectedGift = CreateRandomGift();
             _giftsRepositoryStub.Setup(repo => repo.GetGiftAsync(It.IsAny<Guid>()))
                 .ReturnsAsync(expectedGift);
-            var querry = new GetGiftQuery(
+            var query = new GetGiftQuery(
                 expectedGift.Id,
                 expectedGift.UserId);
             var handler = new GetGiftHandler(_giftsRepositoryStub.Object);
             //Act
-            var result = await handler.Handle(querry, _cancellationToken);
+            var result = await handler.Handle(query, _cancellationToken);
 
             //Assert
             result.Should().BeEquivalentTo(

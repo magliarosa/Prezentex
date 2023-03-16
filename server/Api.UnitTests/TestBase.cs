@@ -1,6 +1,7 @@
 ﻿using Prezentex.Domain.Entities;
+using System.Security.Claims;
 
-namespace Application.UnitTests
+namespace Api.UnitTests
 {
     public class TestBase
     {
@@ -45,6 +46,17 @@ namespace Application.UnitTests
                 NameDay = DateTimeOffset.UtcNow.Date,
                 Note = Guid.NewGuid().ToString(),
             };
+        }
+
+        public ClaimsPrincipal GenerateClaimsPrincipal(Guid userId)
+        {
+            var claims = new List<Claim>()
+            {
+                new Claim("id", userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            return claimsPrincipal;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Prezentex.Api.Controllers
             var query = new GetGiftQuery(id, HttpContext.GetUserId());
             var result = await _mediator.Send(query);
             var giftDto = result.AsDto();
-            return giftDto;
+            return Ok(giftDto);
         }
 
         [SwaggerOperation(Summary = "Create gift")]
