@@ -28,10 +28,8 @@ namespace Prezentex.Application.Users.Commands.CreateUser
         {
             var newUser = new User
             {
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow,
                 Id = Guid.NewGuid(),
-                Username = request.Username,
+                UserName = request.Username,
                 Email = request.Email
             };
 

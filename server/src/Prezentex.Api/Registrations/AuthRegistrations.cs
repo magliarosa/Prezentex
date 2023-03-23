@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Prezentex.Api.Services.Identity;
 using Prezentex.Application.Common.Interfaces.Facebook;
+using Prezentex.Application.Common.Interfaces.Identity;
+using Prezentex.Domain.Entities;
 using Prezentex.Domain.Options;
+using Prezentex.Infrastructure.Persistence.Repositories;
 using Prezentex.Infrastructure.Services.Facebook;
 using Prezentex.Infrastructure.Services.Identity;
 using System.Text;
@@ -20,6 +22,17 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton(facebookAuthSettings);
             services.AddSingleton<IFacebookAuthService, FacebookAuthService>();
             services.AddScoped<IIdentityService, IdentityService>();
+
+            services.AddIdentityCore<User>(opt =>
+            {
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.User.RequireUniqueEmail = true;
+                opt.Password.RequiredLength = 8;
+            })
+            .AddEntityFrameworkStores<EntitiesDbContext>();
+
+            services.AddAuthentication();
+
 
             var jwtSettings = new JwtSettings();
             config.Bind(nameof(JwtSettings), jwtSettings);

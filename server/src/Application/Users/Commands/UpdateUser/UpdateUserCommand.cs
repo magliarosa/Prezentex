@@ -44,9 +44,7 @@ namespace Prezentex.Application.Users.Commands.UpdateUser
             var updatedUser = new User
             {
                 Id = existingUser.Id,
-                Username = request.Username,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                CreatedDate = existingUser.CreatedDate,
+                UserName = request.Username,
                 Gifts = existingUser.Gifts,
                 Recipients = existingUser.Recipients,
                 Email = request.Email

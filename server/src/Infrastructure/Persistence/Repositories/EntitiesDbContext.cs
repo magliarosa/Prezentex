@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Prezentex.Domain.Entities;
 
 namespace Prezentex.Infrastructure.Persistence.Repositories
 {
-    public class EntitiesDbContext : DbContext
+    public class EntitiesDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
         public EntitiesDbContext(DbContextOptions<EntitiesDbContext> options) :
             base(options)
@@ -12,6 +14,10 @@ namespace Prezentex.Infrastructure.Persistence.Repositories
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<IdentityUserLogin<Guid>>()
+                .HasKey(l => new { l.LoginProvider, l.ProviderKey });
             modelBuilder.UseSerialColumns();
         }
 

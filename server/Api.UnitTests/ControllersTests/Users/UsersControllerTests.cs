@@ -84,7 +84,7 @@ namespace Api.UnitTests.ControllersTests.Users
             //Arrange
             var expectedUser = CreateRandomUser();
             var userToCreate = new CreateUserDto(
-                expectedUser.Username,
+                expectedUser.UserName,
                 expectedUser.Email);
             _mediatorStub.Setup(mediator => mediator.Send(It.IsAny<CreateUserCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedUser);
@@ -101,7 +101,6 @@ namespace Api.UnitTests.ControllersTests.Users
                 .ComparingByMembers<UserDto>()
                 .ExcludingMissingMembers());
             createdRecipient.Id.Should().NotBeEmpty();
-            createdRecipient.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0, 0, 1));
             result.Result.Should().BeOfType<CreatedAtActionResult>();
         }
 
@@ -111,7 +110,7 @@ namespace Api.UnitTests.ControllersTests.Users
             //Arrange
             var updatedUser = CreateRandomUser();
             var userToUpdate = new UpdateUserDto(
-                updatedUser.Username,
+                updatedUser.UserName,
                 updatedUser.Email);
 
             var recipientId = updatedUser.Id;
@@ -130,7 +129,8 @@ namespace Api.UnitTests.ControllersTests.Users
 
             //Assert
             var retrievedUser = (result.Result as OkObjectResult).Value as UserDto;
-            updatedUser.Should().BeEquivalentTo(userToUpdate);
+            updatedUser.Should().BeEquivalentTo(userToUpdate,
+                options => options.ExcludingMissingMembers());
             result.Result.Should().BeOfType<OkObjectResult>();
         }
 

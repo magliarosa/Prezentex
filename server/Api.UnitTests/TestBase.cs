@@ -14,9 +14,7 @@ namespace Api.UnitTests
             return new()
             {
                 Id = Guid.NewGuid(),
-                CreatedDate = DateTimeOffset.UtcNow,
-                UpdatedDate = DateTimeOffset.UtcNow,
-                Username = Guid.NewGuid().ToString()
+                UserName = Guid.NewGuid().ToString()
             };
         }
 

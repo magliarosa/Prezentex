@@ -51,7 +51,7 @@ namespace Prezentex.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDto>> CreateUserAsync(CreateUserDto userDto)
         {
-            var command = new CreateUserCommand(userDto.Username, userDto.Email);
+            var command = new CreateUserCommand(userDto.UserName, userDto.Email);
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetUserAsync), new { Id = result.Id }, result.AsDto());
         }
@@ -61,7 +61,7 @@ namespace Prezentex.Api.Controllers
         public async Task<ActionResult<UserDto>> UpdateUserAsync(Guid userId, UpdateUserDto userDto)
         {
             var command = new UpdateUserCommand(
-                userDto.Username,
+                userDto.UserName,
                 userDto.Email,
                 userId,
                 HttpContext.GetUserId());

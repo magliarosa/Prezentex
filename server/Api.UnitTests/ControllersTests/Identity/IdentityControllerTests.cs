@@ -1,9 +1,12 @@
-﻿using FluentAssertions;
+﻿using Prezentex.Application.Common.Interfaces.Identity;
+using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Prezentex.Api.Controllers;
 using Prezentex.Api.Dtos;
-using Prezentex.Api.Services.Identity;
+using Prezentex.Api.Services;
+using Prezentex.Domain.Entities;
 using Prezentex.Domain.Identity;
 
 namespace Api.UnitTests.ControllersTests.Identity
@@ -13,6 +16,14 @@ namespace Api.UnitTests.ControllersTests.Identity
         //naming convention: UnitOfWork_StateUnderTest_ExpectedBehavior
 
         private readonly Mock<IIdentityService> _identityServiceStub = new();
+        private readonly Mock<IUserStore<User>> _userStoreStub;
+        private readonly Mock<UserManager<User>> _userManagerStub;
+
+        public IdentityControllerTests()
+        {
+            _userStoreStub = new();
+            _userManagerStub = new(_userStoreStub.Object, null, null, null, null, null, null, null, null);
+        }
 
         [Fact]
         public async Task FacebookAuth_WithCorrectAccessToken_ReturnsAuthSuccessResponse()
@@ -28,7 +39,7 @@ namespace Api.UnitTests.ControllersTests.Identity
             };
             _identityServiceStub.Setup(service => service.LoginWithFacebookAsync(It.IsAny<string>()))
                 .ReturnsAsync(authenticationResult);
-            var controller = new IdentityController(_identityServiceStub.Object);
+            var controller = new IdentityController(_identityServiceStub.Object, _userManagerStub.Object);
 
             //Act
             var result = await controller.FacebookAuth(facebookRequest);
@@ -52,7 +63,7 @@ namespace Api.UnitTests.ControllersTests.Identity
             };
             _identityServiceStub.Setup(service => service.LoginWithFacebookAsync(It.IsAny<string>()))
                 .ReturnsAsync(authenticationResult);
-            var controller = new IdentityController(_identityServiceStub.Object);
+            var controller = new IdentityController(_identityServiceStub.Object, _userManagerStub.Object);
 
             //Act
             var result = await controller.FacebookAuth(facebookRequest);
@@ -79,10 +90,10 @@ namespace Api.UnitTests.ControllersTests.Identity
             _identityServiceStub.Setup(
                 service => service.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(authenticationResult);
-            var controller = new IdentityController(_identityServiceStub.Object);
+            var controller = new IdentityController(_identityServiceStub.Object, _userManagerStub.Object);
 
             //Act
-            var result = await controller.FacebookAuthRefresh(refreshTokenRequest);
+            var result = await controller.AuthRefresh(refreshTokenRequest);
 
             //Assert
             var okResult = (result as OkObjectResult);
@@ -105,10 +116,10 @@ namespace Api.UnitTests.ControllersTests.Identity
             _identityServiceStub.Setup(
                 service => service.RefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(authenticationResult);
-            var controller = new IdentityController(_identityServiceStub.Object);
+            var controller = new IdentityController(_identityServiceStub.Object, _userManagerStub.Object);
 
             //Act
-            var result = await controller.FacebookAuthRefresh(refreshTokenRequest);
+            var result = await controller.AuthRefresh(refreshTokenRequest);
 
             //Assert
             var badRequestResult = (result as BadRequestObjectResult);
