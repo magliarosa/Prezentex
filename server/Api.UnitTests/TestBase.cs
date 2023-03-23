@@ -50,7 +50,8 @@ namespace Api.UnitTests
         {
             var claims = new List<Claim>()
             {
-                new Claim("id", userId.ToString())
+                new Claim("id", userId.ToString()),
+                new Claim(ClaimTypes.Email, "test@test.com")
             };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             var claimsPrincipal = new ClaimsPrincipal(identity);
