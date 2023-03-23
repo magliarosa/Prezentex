@@ -1,9 +1,10 @@
-﻿namespace Prezentex.Domain.Entities
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Prezentex.Domain.Entities
 {
-    public class User : Entity
+    public class User : IdentityUser<Guid>
     {
-        public string Username { get; set; }
-        public string Email { get; set; }
+        public string DisplayName { get; set; }
         public ICollection<Gift> Gifts { get; set; } = new List<Gift>();
         public ICollection<Recipient> Recipients { get; set; } = new List<Recipient>();
     }

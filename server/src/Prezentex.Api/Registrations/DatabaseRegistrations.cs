@@ -19,8 +19,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var cosmosSettings = config.GetSection(nameof(CosmosSettings)).Get<CosmosSettings>();
 
             services.AddDbContext<EntitiesDbContext>(
-                options => options.UseNpgsql(postgresSettings.ConnectionString));
-
+                options => options.UseNpgsql(
+                    postgresSettings.ConnectionString));
             services.AddDbContext<CosmosDbContext>(
                 options => options.UseCosmos(cosmosSettings.ConnectionString, cosmosSettings.Database));
 

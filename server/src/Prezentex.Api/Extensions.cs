@@ -1,5 +1,7 @@
 ﻿using Prezentex.Api.Dtos;
+using Prezentex.Api.DTOs;
 using Prezentex.Domain.Entities;
+using Prezentex.Domain.Identity;
 
 namespace Prezentex.Api
 {
@@ -30,11 +32,19 @@ namespace Prezentex.Api
         {
             return new UserDto(
                 user.Id,
-                user.CreatedDate,
-                user.Username,
+                user.UserName,
                 user.Gifts.Select(x => x.AsDto()).ToList(),
                 user.Recipients,
                 user.Email);
+        }
+
+        public static LoggedUserDto AsLoggedUserDto(this User user)
+        {
+            return new LoggedUserDto(
+                    user.DisplayName,
+                    user.Email,
+                    null,
+                    user.UserName);
         }
 
         public static Guid GetUserId(this HttpContext httpContext)

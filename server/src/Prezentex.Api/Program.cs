@@ -1,23 +1,30 @@
+using Infrastructure.Persistence.Repositories;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.OpenApi.Models;
 using Prezentex.Api.Middleware;
-using Prezentex.Api.Services.Identity;
 using Prezentex.Api.Services.Notifications;
 using Prezentex.Application.Common.Interfaces.Events;
+using Prezentex.Application.Common.Interfaces.Identity;
 using Prezentex.Application.Gifts.Queries.GetAllGifts;
+using Prezentex.Domain.Entities;
+using Prezentex.Infrastructure.Persistence.Repositories;
 using Prezentex.Infrastructure.Services.Events;
 using Prezentex.Infrastructure.Services.Notifications;
 using System.Net.Mime;
-using System.Reflection;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers(options =>
+builder.Services.AddControllers(opt =>
 {
-    options.SuppressAsyncSuffixInActionNames = false;
+    opt.SuppressAsyncSuffixInActionNames = false;
+    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    opt.Filters.Add(new AuthorizeFilter(policy));
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -57,12 +64,11 @@ builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddHttpClient();
 
-builder.Services.AddScoped<INotificationsService,NotificationsService>();
+builder.Services.AddScoped<INotificationsService, NotificationsService>();
 builder.Services.AddScoped<IEventService>(
     x => new EventService(
         x.GetRequiredService<INotificationsService>(),
         x.GetRequiredService<IIdentityService>()));
-
 
 var app = builder.Build();
 
@@ -121,5 +127,19 @@ app.UseEndpoints(endpoints =>
 });
 
 app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+
+try
+{
+    var context = services.GetRequiredService<EntitiesDbContext>();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    await Seed.SeedData(context, userManager);
+}
+catch (Exception ex)
+{
+
+}
 
 app.Run();

@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Prezentex.Api.Services.Identity;
-using Prezentex.Api.Services.Notifications;
 using Prezentex.Application.Common.Interfaces.Facebook;
+using Prezentex.Application.Common.Interfaces.Identity;
 using Prezentex.Application.Common.Interfaces.Repositories;
 using Prezentex.Domain.Entities;
 using Prezentex.Domain.Identity;
@@ -21,17 +21,64 @@ namespace Prezentex.Infrastructure.Services.Identity
         private readonly JwtSettings _jwtSettings;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly EntitiesDbContext _context;
-        private INotificationsService _notificationsService { get; set; }
+        private readonly UserManager<User> _userManager;
+
         public event EventHandler<User> UserRegistered;
 
-        public IdentityService(IFacebookAuthService facebookAuthService, IUsersRepository usersRepository, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters, EntitiesDbContext context, INotificationsService notificationsService)
+        public IdentityService(
+            IFacebookAuthService facebookAuthService,
+            IUsersRepository usersRepository,
+            JwtSettings jwtSettings,
+            TokenValidationParameters tokenValidationParameters,
+            EntitiesDbContext context,
+            UserManager<User> userManager)
         {
             _facebookAuthService = facebookAuthService;
             _usersRepository = usersRepository;
             _jwtSettings = jwtSettings;
             _tokenValidationParameters = tokenValidationParameters;
             _context = context;
-            _notificationsService = notificationsService;
+            _userManager = userManager;
+        }
+
+        public async Task<AuthenticationResult> LoginWithPasswordAsync(string email, string password)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return new AuthenticationResult { Success = false, Errors = new List<string>() { "User not found" } };
+            if (!await _userManager.CheckPasswordAsync(user, password))
+                return new AuthenticationResult { Success = false, Errors = new List<string>() { "Incorrect password" } };
+
+            var authResult = await GenerateAuthenticationResultForUserAsync(user);
+            return authResult;
+        }
+        public async Task<AuthenticationResult> RegisterWithPasswordAsync(string email, string password, string userName, string displayName)
+        {
+            if (await _userManager.Users.AnyAsync(x => x.UserName == userName))
+            {
+                return new AuthenticationResult { Success = false, Errors = new List<string>() { "Username is already taken" } };
+            }
+
+            if (await _userManager.Users.AnyAsync(x => x.Email == email))
+            {
+                return new AuthenticationResult { Success = false, Errors = new List<string>() { "Email is already taken" } };
+            }
+
+            var user = new User
+            {
+                DisplayName = displayName,
+                Email = email,
+                UserName = userName
+            };
+            
+            var result = await _userManager.CreateAsync(user, password);
+
+            if (!result.Succeeded)
+            {
+                return new AuthenticationResult { Success = false, Errors = new List<string>() { "User register failed" } };
+            }
+
+            return await GenerateAuthenticationResultForUserAsync(user);
         }
 
         public async Task<AuthenticationResult> LoginWithFacebookAsync(string accessToken)
@@ -47,25 +94,25 @@ namespace Prezentex.Infrastructure.Services.Identity
 
             var userInfo = await _facebookAuthService.GetUserInfoAsync(accessToken);
 
-            var user = await _usersRepository.GetUserByEmailAsync(userInfo.Email);
+            var user = await _userManager.FindByEmailAsync(userInfo.Email);
 
             if (user == null)
             {
                 var newUser = new User
                 {
-                    CreatedDate = DateTimeOffset.UtcNow,
                     Email = userInfo.Email,
-                    Username = userInfo.Email,
-                    UpdatedDate = DateTimeOffset.UtcNow,
+                    UserName = userInfo.Email,
+                    DisplayName = userInfo.Email,
                     Id = Guid.NewGuid()
                 };
 
                 await _usersRepository.CreateUserAsync(newUser);
 
+                OnUserRegistered(newUser);
+
                 return await GenerateAuthenticationResultForUserAsync(newUser);
             }
 
-            OnUserRegistered(user);
 
             return await GenerateAuthenticationResultForUserAsync(user);
         }
@@ -137,8 +184,8 @@ namespace Prezentex.Infrastructure.Services.Identity
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                    new Claim("id", user.Id.ToString())
-
+                    new Claim(JwtRegisteredClaimNames.Name, user.UserName),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
                 }),
                 Expires = DateTime.UtcNow.Add(_jwtSettings.TokenLifetime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -195,6 +242,12 @@ namespace Prezentex.Infrastructure.Services.Identity
         {
             UserRegistered?.Invoke(this, user);
         }
+
+        public Task<AuthenticationResult> LoginWithPasswordAsync(string email, string password, string userName, string displayName)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
 }

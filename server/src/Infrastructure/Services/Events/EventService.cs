@@ -1,6 +1,6 @@
-﻿using Prezentex.Api.Services.Identity;
-using Prezentex.Api.Services.Notifications;
+﻿using Prezentex.Api.Services.Notifications;
 using Prezentex.Application.Common.Interfaces.Events;
+using Prezentex.Application.Common.Interfaces.Identity;
 
 namespace Prezentex.Infrastructure.Services.Events
 {

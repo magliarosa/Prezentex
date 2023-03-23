@@ -134,7 +134,6 @@ namespace Application.UnitTests.HandlerTests
                 .ComparingByMembers<User>()
                 .ExcludingMissingMembers());
             result.Id.Should().NotBeEmpty();
-            result.CreatedDate.Should().BeCloseTo(DateTimeOffset.UtcNow, new TimeSpan(0, 0, 1));
         }
 
         [Fact]
