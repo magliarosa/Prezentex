@@ -53,7 +53,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build Prezentex.Api.csproj --configuration Release
         working-directory: server/src/Prezentex.Api
 
       - name: dotnet publish
