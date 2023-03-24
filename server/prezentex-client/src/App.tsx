@@ -1,24 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { Button, Header, List } from 'semantic-ui-react';
+import axios from 'axios';
 
 function App() {
+  const [gifts, setGifts] = useState([]);
+
+  useEffect(() => {
+    axios.get('https://localhost:7273/api/Gifts')
+    .then((response) => {      
+      setGifts(response.data);
+    })
+  }, []);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload!!
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Header as='h2' icon='gift' content='Prezentex'/>
+      <List>
+        {gifts.map((gift : any) => (
+          <List.Item key={gift.id}>
+            {gift.name}
+          </List.Item>
+        ))}
+      </List>
     </div>
   );
 }
