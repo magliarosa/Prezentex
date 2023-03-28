@@ -53,11 +53,11 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build Prezentex.Api.csproj --configuration Release
         working-directory: server/src/Prezentex.Api
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish Prezentex.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
         working-directory: server/src/Prezentex.Api
 
       - name: Upload artifact for deployment job
