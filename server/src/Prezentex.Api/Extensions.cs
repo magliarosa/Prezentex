@@ -2,6 +2,7 @@
 using Prezentex.Api.DTOs;
 using Prezentex.Domain.Entities;
 using Prezentex.Domain.Identity;
+using System.Security.Claims;
 
 namespace Prezentex.Api
 {
@@ -49,7 +50,8 @@ namespace Prezentex.Api
 
         public static Guid GetUserId(this HttpContext httpContext)
         {
-            var plainId = httpContext.User.Claims.Single(x => x.Type == "id").Value;
+            var plainId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            //var plainId = httpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             var id = Guid.Parse(plainId);
             return id;
         }

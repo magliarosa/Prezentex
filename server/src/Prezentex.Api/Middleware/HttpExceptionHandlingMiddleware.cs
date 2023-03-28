@@ -44,6 +44,7 @@ namespace Prezentex.Api.Middleware
                     break;
                 default:
                     statusCode = StatusCodes.Status500InternalServerError;
+                    message = ex.Message;
                     break;
             }
 
