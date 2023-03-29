@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { SyntheticEvent, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button, Item, Label, Segment } from 'semantic-ui-react';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
 import { useStore } from '../../../app/stores/store';
@@ -33,7 +34,8 @@ export default observer(function GiftList() {
                             </Item.Description>
                             <Item.Extra>
                                 <Button 
-                                    onClick={() => giftStore.selectGift(gift.id)} 
+                                    as={Link}
+                                    to={`/gifts/${gift.id}`} 
                                     floated='right' 
                                     content='Otwórz' 
                                     color='blue' />

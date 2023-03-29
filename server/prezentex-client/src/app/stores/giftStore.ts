@@ -17,21 +17,57 @@ export default class GiftStore {
 
     get giftsByPrice() {
         return Array.from(this.giftRegistry.values())
-            .sort((a,b) => a.price - b.price);
+            .sort((a, b) => a.price - b.price);
     }
 
     loadGifts = async () => {
-        this.setGiftsLoadning(true);
+        runInAction(() => {
+            this.setEditMode(false);
+            this.setGiftsLoadning(true);
+        })
         try {
             const gifts = await agent.Gifts.list();
             gifts.forEach(gift => {
-                this.giftRegistry.set(gift.id, gift);
+                this.setGift(gift);
             })
             this.setGiftsLoadning(false);
         } catch (error) {
             console.log(error);
             this.setGiftsLoadning(false);
         }
+    }
+
+    loadGift = async (id: string) => {
+        let gift = this.getGift(id);
+        if (gift) {
+            this.selectedGift = gift;
+            return gift;
+        }
+        else {
+            this.setLoadingInitial(true);
+            try {
+                gift = await agent.Gifts.details(id);
+                this.setGift(gift);
+                this.selectedGift = gift;
+                this.setLoadingInitial(false);
+                return gift;
+            } catch (error) {
+                console.log(error);
+                this.setLoadingInitial(false);
+            }
+        }
+    }
+
+    private setGift = (gift: Gift) => {
+        this.giftRegistry.set(gift.id, gift);
+    }
+
+    private getGift = (id: string) => {
+        return this.giftRegistry.get(id);
+    }
+
+    setEditMode = (state: boolean) => {
+        this.editMode = state;
     }
 
     setLoadingInitial = (state: boolean) => {
@@ -51,30 +87,33 @@ export default class GiftStore {
     }
 
     openForm = (id?: string) => {
+        console.log('Open form');
+
+        this.closeForm();
         id ? this.selectGift(id) : this.cancelSelectedGift();
-        this.editMode = true;
+        this.setEditMode(true);
     }
 
     closeForm = () => {
         this.editMode = false;
     }
 
-    createGift = async (gift:Gift) => {
+    createGift = async (gift: Gift) => {
         this.loading = true;
         try {
-            await agent.Gifts.create(gift)
-                .then((response) => {
-                    this.giftRegistry.set(response.id, response);
-                });
+            let newGift = await agent.Gifts.create(gift);
+            this.setGift(newGift);
             runInAction(() => {
                 this.loading = false;
                 this.editMode = false;
-            })            
+            });
+            return newGift;
         } catch (error) {
             console.log(error);
             runInAction(() => {
                 this.loading = false;
-            })
+            });
+            throw error;
         }
     }
 
@@ -82,7 +121,7 @@ export default class GiftStore {
         this.loading = true;
         try {
             await agent.Gifts.update(gift);
-            runInAction(() =>{
+            runInAction(() => {
                 this.giftRegistry.set(gift.id, gift);
                 this.loading = false;
                 this.editMode = false;
@@ -98,13 +137,13 @@ export default class GiftStore {
     deleteGift = async (id: string) => {
         this.editMode = false;
         this.loading = true;
-        if (id === this.selectedGift?.id){
+        if (id === this.selectedGift?.id) {
             this.cancelSelectedGift();
         }
         try {
             await agent.Gifts.delete(id);
             runInAction(() => {
-                this.giftRegistry.delete(id);                
+                this.giftRegistry.delete(id);
                 this.loading = false;
             })
         } catch (error) {
