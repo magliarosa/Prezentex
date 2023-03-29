@@ -67,6 +67,18 @@ namespace Infrastructure.Persistence.Repositories
                     ProductUrl = "allegro.pl",
                     Recipients = new List<Recipient> { recipients.First() },
                     User = users.First()
+                },
+                new Gift
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedDate = DateTime.UtcNow,
+                    UpdatedDate = DateTime.UtcNow,
+                    Description = "speakers",
+                    Name = "Sony MX4",
+                    Price = 1456.29M,
+                    ProductUrl = "amazon.pl",
+                    Recipients = new List<Recipient> { recipients.First() },
+                    User = users.First()
                 }
             };
 

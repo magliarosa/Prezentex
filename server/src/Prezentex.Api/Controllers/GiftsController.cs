@@ -28,6 +28,7 @@ namespace Prezentex.Api.Controllers
 
         [SwaggerOperation(Summary = "Get all gifts")]
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<GiftDto>>> GetGiftsAsync()
         {
             var query = new GetAllGiftsQuery();
